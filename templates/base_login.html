@@ -1,0 +1,101 @@
+{% load static %}
+<head>
+	<meta charset="utf-8" />
+	<title>Finance Trust Bank</title>
+	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+	<meta content="" name="description" />
+	<meta content="" name="author" />
+	
+	<!-- ================== BEGIN BASE CSS STYLE ================== -->
+    <link rel="shortcut icon" href="{% static 'assets/img/logo/favicon.ico' %}">
+	<link href="{% static 'assets/plugins/jquery-ui/jquery-ui.min.css' %}" rel="stylesheet" />
+	<link href="{% static 'assets/plugins/bootstrap/css/bootstrap.min.css' %}"  rel="stylesheet" />
+	<link rel="stylesheet" type="text/css" href="{% static 'assets/font-awesome/css/font-awesome.css' %}">
+	<link href="{% static 'assets/plugins/animate/animate.min.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/css/default/style.min.css' %}" rel="stylesheet" />
+
+
+	<link href="{% static  'assets/css/default/style-responsive.min.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/css/default/theme/default.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/jquery-jvectormap/jquery-jvectormap.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/bootstrap-calendar/css/bootstrap_calendar.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/gritter/css/jquery.gritter.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/nvd3/build/nv.d3.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/ionRangeSlider/css/ion.rangeSlider.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/ionRangeSlider/css/ion.rangeSlider.skinNice.css' %}" rel="stylesheet" />
+
+
+	<!-- ================== BEGIN BASE JS ================== -->
+	<script src="{% static  'assets/plugins/pace/pace.min.js' %} "></script>
+	<!-- ================== END BASE JS ================== -->
+</head>
+<body>
+
+	<!-- begin #page-container -->
+	<div id="page-container" class="fade page-sidebar-fixed page-header-fixed">
+
+
+        <div class="row">
+            <div class="col-md-3"></div>
+             <div class="col-md-6">
+
+				 {% block content %}
+			     {% endblock %}
+             </div>
+             <div class="col-md-3"></div>
+
+        </div>
+
+	</div>
+	<!-- end page container -->
+	
+	<!-- ================== BEGIN BASE JS ================== -->
+	<script src="{% static  'assets/plugins/jquery/jquery-3.3.1.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/jquery-ui/jquery-ui.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/bootstrap/js/bootstrap.bundle.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/slimscroll/jquery.slimscroll.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/js-cookie/js.cookie.js' %} "></script>
+	<script src="{% static  'assets/js/theme/default.min.js' %} "></script>
+	<script src="{% static  'assets/js/apps.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/gritter/js/jquery.gritter.js' %} "></script>
+	<script src="{% static  'assets/js/demo/dashboard-v2.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/DataTables/media/js/jquery.dataTables.js' %} "></script>
+	<script src="{% static  'assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js' %} "></script>
+	<script src="{% static  'assets/js/demo/form-plugins.demo.min.j' %} "></script>
+	<script src="{% static  'assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js' %} "></script>
+    <script src="{% static  'assets/plugins/ionRangeSlider/js/ion-rangeSlider/ion.rangeSlider.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/masked-input/masked-input.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/bootstrap-timepicker/js/bootstrap-timepicker.min.js' %} "></script>
+    <script src="{% static  'ssets/plugins/bootstrap-timepicker/js/bootstrap-timepicker.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/password-indicator/js/password-indicator.js' %} "></script>
+    <script src="{% static  'assets/plugins/bootstrap-select/bootstrap-select.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/bootstrap-daterangepicker/moment.js' %} "></script>
+    <script src="{% static  'assets/plugins/bootstrap-daterangepicker/daterangepicker.js' %} "></script>
+    <script src="{% static  'assets/plugins/select2/dist/js/select2.min.js' %}"></script>
+    <script src="{% static  'assets/plugins/bootstrap-eonasdan-datetimepicker/build/js/bootstrap-datetimepicker.min.js' %} "></script>
+ 
+
+	<script>
+		$(document).ready(function() {
+			App.init();
+
+		});
+	</script>
+
+
+
+
+	
+
+	
+
+</body>
+
+
+<!-- Mirrored from seantheme.com/color-admin-v4.3/admin/html/index_v2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 13 Apr 2019 07:58:53 GMT -->
+</html>
+   

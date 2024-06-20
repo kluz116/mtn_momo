@@ -1,0 +1,108 @@
+{% load static %}
+<div id="sidebar" class="sidebar">
+  <!-- begin sidebar scrollbar -->
+  <div data-scrollbar="true" data-height="100%">
+    <!-- begin sidebar user -->
+    <ul class="nav">
+      <li class="nav-profile">
+        <a href="javascript:;" data-toggle="nav-profile">
+          <div class="cover with-shadow"></div>
+          <div class="image">
+            <img src="{% static 'assets/img/user/user-2.jpg' %}" alt="" />
+          </div>
+          <div class="info">
+            <b class="caret pull-right"></b>
+            {{user.firstname}} {{user.lastname}}
+          </div>
+        </a>
+      </li>
+      <li>
+        <ul class="nav nav-profile">
+          <li>
+            <a href="javascript:;"><i class="fa fa-cog"></i> Settings</a>
+          </li>
+          <li>
+            <a href="javascript:;"
+              ><i class="fa fa-pencil-alt"></i> Send Feedback</a
+            >
+          </li>
+          <li>
+            <a href="javascript:;"
+              ><i class="fa fa-question-circle"></i> Helps</a
+            >
+          </li>
+        </ul>
+      </li>
+    </ul>
+    <!-- end sidebar user -->
+    <!-- begin sidebar nav -->
+    <ul class="nav">
+      <li class="nav-header">Navigation</li>
+      <li class="has-sub active">
+        <a href="javascript:;">
+          <b class="caret"></b>
+          <i class="fa fa-list"></i>
+          <span>AccountHolder</span>
+        </a>
+        <ul class="sub-menu">
+          <li class="active"><a href="{% url 'getAccountHolders' %}">AccountHolders</a></li>
+          <li><a href="{% url 'addAccountHolder' %}">Search AccountHolder</a></li>
+        </ul>
+      </li>
+      <li class="has-sub active">
+        <a href="javascript:;">
+          <b class="caret"></b>
+          <i class="fa fa-th-large"></i>
+          <span>Deposits</span>
+        </a>
+        <ul class="sub-menu">
+          <li class="active"><a href="{% url 'getDeposits' %}">Deposit</a></li>
+          <li ><a href="{% url 'addDeposit' %}">Add Deposit Phone Number</a></li>
+          <li ><a href="{% url 'addDepositExternalId' %}">Add Deposit External</a></li>
+
+
+        </ul>
+      </li>
+       <li class="has-sub active">
+        <a href="javascript:;">
+          <b class="caret"></b>
+          <i class="fa fa-list"></i>
+          <span>Withdraws</span>
+        </a>
+        <ul class="sub-menu">
+          <li class="active"><a href="{% url 'getPaymentInstructions' %}">Payment Instructions</a></li>
+          <li><a href="{% url 'getIndex' %}">Create Withdraw</a></li>
+        </ul>
+      </li>
+
+
+      <li class="has-sub">
+        <a href="javascript:;">
+          <b class="caret"></b>
+          <i class="fa fa-book"></i>
+          <span>Reports</span>
+        </a>
+        <ul class="sub-menu">
+          <li class="active">
+            <a href="{% url 'generateReport' %}">Generate Report</a>
+          </li>
+        </ul>
+      </li>
+
+
+
+      <!-- begin sidebar minify button -->
+      <li>
+        <a
+          href="javascript:;"
+          class="sidebar-minify-btn"
+          data-click="sidebar-minify"
+          ><i class="fa fa-angle-double-left"></i
+        ></a>
+      </li>
+      <!-- end sidebar minify button -->
+    </ul>
+    <!-- end sidebar nav -->
+  </div>
+  <!-- end sidebar scrollbar -->
+</div>

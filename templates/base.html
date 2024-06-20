@@ -1,0 +1,159 @@
+{% load static %}
+<head>
+	<meta charset="utf-8" />
+	<title>Finance Trust Bank</title>
+	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+	<meta content="" name="description" />
+	<meta content="" name="author" />
+	
+	<!-- ================== BEGIN BASE CSS STYLE ================== -->
+    <link rel="shortcut icon" href="{% static 'assets/img/logo/favicon.ico' %}">
+	<link href="{% static 'assets/plugins/jquery-ui/jquery-ui.min.css' %}" rel="stylesheet" />
+	<link href="{% static 'assets/plugins/bootstrap/css/bootstrap.min.css' %}"  rel="stylesheet" />
+	<link rel="stylesheet" type="text/css" href="{% static 'assets/font-awesome/css/font-awesome.css' %}">
+	<link href="{% static 'assets/plugins/animate/animate.min.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/css/default/style.min.css' %}" rel="stylesheet" />
+
+
+	<link href="{% static  'assets/css/default/style-responsive.min.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/css/default/theme/default.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/jquery-jvectormap/jquery-jvectormap.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/bootstrap-calendar/css/bootstrap_calendar.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/gritter/css/jquery.gritter.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/nvd3/build/nv.d3.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/bootstrap-datepicker/css/bootstrap-datepicker3.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/ionRangeSlider/css/ion.rangeSlider.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/ionRangeSlider/css/ion.rangeSlider.skinNice.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/bootstrap-combobox/css/bootstrap-combobox.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/bootstrap-select/bootstrap-select.min.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/bootstrap-tagsinput/bootstrap-tagsinput.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/bootstrap-daterangepicker/daterangepicker.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/select2/dist/css/select2.min.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/bootstrap-eonasdan-datetimepicker/build/css/bootstrap-datetimepicker.min.css' %}" rel="stylesheet" />
+	<link href="{% static  'assets/plugins/DataTables/media/css/dataTables.bootstrap.min.css' %}" rel="stylesheet" />
+  
+	<link href="{% static  'assets/plugins/DataTables/extensions/Responsive/css/responsive.bootstrap.min.css' %}" rel="stylesheet" />
+	
+
+
+
+
+
+	
+	<!-- ================== BEGIN BASE JS ================== -->
+	<script src="{% static  'assets/plugins/pace/pace.min.js' %} "></script>
+	<!-- ================== END BASE JS ================== -->
+</head>
+<body>
+	<!-- begin #page-loader -->
+	<div id="page-loader" class="fade show"><span class="spinner"></span></div>
+	<!-- end #page-loader -->
+	
+	<!-- begin #page-container -->
+	<div id="page-container" class="fade page-sidebar-fixed page-header-fixed">
+		<!-- begin #header -->
+		   {% block head %}
+		   {% include "header.html" %}
+		   {% endblock %}
+		<!-- end #header -->
+		
+		 {% block side_bars %}
+		   {% include "side_bar.html" %}
+		   {% endblock %}
+		<div class="sidebar-bg"></div>
+		<!-- end #sidebar -->
+
+		<!-- begin #content -->
+		<div id="content" class="content">
+						
+			{% block content %}
+			{% endblock %}
+		</div>
+		<!-- end #content -->
+		<!-- begin scroll to top btn -->
+		<a href="javascript:;" class="btn btn-icon btn-circle btn-success btn-scroll-to-top fade" data-click="scroll-top"><i class="fa fa-angle-up"></i></a>
+		<!-- end scroll to top btn -->
+	</div>
+	<!-- end page container -->
+	
+	<!-- ================== BEGIN BASE JS ================== -->
+	<script src="{% static  'assets/plugins/jquery/jquery-3.3.1.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/jquery-ui/jquery-ui.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/bootstrap/js/bootstrap.bundle.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/slimscroll/jquery.slimscroll.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/js-cookie/js.cookie.js' %} "></script>
+	<script src="{% static  'assets/js/theme/default.min.js' %} "></script>
+	<script src="{% static  'assets/js/apps.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/gritter/js/jquery.gritter.js' %} "></script>
+	<script src="{% static  'assets/js/demo/dashboard-v2.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/DataTables/media/js/jquery.dataTables.js' %} "></script>
+	<script src="{% static  'assets/plugins/DataTables/media/js/dataTables.bootstrap.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/DataTables/extensions/Buttons/js/dataTables.buttons.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/DataTables/extensions/Responsive/js/dataTables.responsive.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/DataTables/extensions/Buttons/js/buttons.colVis.min.js' %} "></script>
+     <script src="{% static  'assets/plugins/DataTables/extensions/Buttons/js/buttons.flash.min.js' %} "></script>
+     <script src="{% static  'assets/plugins/DataTables/extensions/Buttons/js/buttons.html5.min.js' %} "></script>
+     <script src="{% static  'assets/plugins/DataTables/extensions/Buttons/js/buttons.print.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/DataTables/extensions/Buttons/js/pdfmake.min.js ' %} "></script>
+    <script src="{% static  'assets/plugins/DataTables/extensions/Buttons/js/vfs_fonts.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/DataTables/extensions/Buttons/js/jszip.min.js ' %} "></script>
+	<script src="{% static  'assets/js/demo/form-plugins.demo.min.js' %} "></script>
+	<script src="{% static  'assets/plugins/bootstrap-datepicker/js/bootstrap-datepicker.js' %} "></script>
+    <script src="{% static  'assets/plugins/ionRangeSlider/js/ion-rangeSlider/ion.rangeSlider.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/bootstrap-colorpicker/js/bootstrap-colorpicker.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/masked-input/masked-input.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/bootstrap-timepicker/js/bootstrap-timepicker.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/bootstrap-select/bootstrap-select.min.js' %} "></script>
+    <script src="{% static  'assets/plugins/bootstrap-daterangepicker/moment.js' %} "></script>
+    <script src="{% static  'assets/plugins/bootstrap-daterangepicker/daterangepicker.js' %} "></script>
+    <script src="{% static  'assets/plugins/select2/dist/js/select2.min.js' %}"></script>
+    <script src="{% static  'assets/plugins/bootstrap-eonasdan-datetimepicker/build/js/bootstrap-datetimepicker.min.js' %} "></script>
+ 
+
+    <script src={% static 'smart-selects/admin/js/chainedfk.js' %} "></script>
+    <script src={% static 'smart-selects/admin/js/bindfields.js' %} "></script>
+
+
+</body>
+<script>
+  $('#data-table-default').DataTable({
+   // responsive: true,
+    dom: '<"row"<"col-sm-5"B><"col-sm-7"fr>>t<"row"<"col-sm-5"i><"col-sm-7"p>>',
+    buttons: [
+      { extend: 'copy', className: 'btn-sm' },
+      { extend: 'csv', className: 'btn-sm' },
+      { extend: 'excel', className: 'btn-sm' },
+      { extend: 'pdf', className: 'btn-sm' },
+      { extend: 'print', className: 'btn-sm' }
+    ],
+  });
+</script>
+<script>
+  $(function () {
+    $("#datepicker-autoClose").datepicker({
+      todayHighlight: !0,
+			autoclose: !0
+    });
+  });
+</script>
+<script>
+  $(function () {
+    $("#datepickertry").datepicker({
+      todayHighlight: !0,
+			autoclose: !0
+    });
+  });
+</script>
+
+
+	<script>
+		$(document).ready(function() {
+			App.init();
+			
+		});
+	</script>
+
+<!-- Mirrored from seantheme.com/color-admin-v4.3/admin/html/index_v2.html by HTTrack Website Copier/3.x [XR&CO'2014], Sat, 13 Apr 2019 07:58:53 GMT -->
+</html>
+   
