@@ -1,6 +1,6 @@
 # myapp/serializers.py
 from rest_framework import serializers
-from .models import PaymentInstructionRequest, TransactionTimestamp, Amount
+from .models import PaymentInstructionRequest, TransactionTimestamp, Amount,BookingTimestamp,PaymentInstructionResponse
 
 class TransactionTimestampSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,6 +11,11 @@ class AmountSerializer(serializers.ModelSerializer):
     class Meta:
         model = Amount
         fields = ['amount', 'currency']
+
+class BookingTimestampSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookingTimestamp
+        fields = ('timestamp', )
 
 class PaymentInstructionRequestSerializer(serializers.ModelSerializer):
     transactiontimestamp = TransactionTimestampSerializer()
@@ -33,3 +38,13 @@ class PaymentInstructionRequestSerializer(serializers.ModelSerializer):
             transactiontimestamp=transactiontimestamp, amount=amount, **validated_data
         )
         return payment_instruction_request
+
+
+class PaymentInstructionResponseSerializer(serializers.ModelSerializer):
+    transactiontimestamp = TransactionTimestampSerializer()
+    bookingtimestamp = BookingTimestampSerializer()
+    amount = AmountSerializer()
+
+    class Meta:
+        model = PaymentInstructionResponse
+        fields = ('status', 'paymentinstructionid', 'banktransactionid', 'transactiontimestamp', 'bookingtimestamp', 'amount')

@@ -162,10 +162,11 @@
                   <th class="text-nowrap">Receiveraccountnumber</th>
                   <th class="text-nowrap">Status</th>
                   <th class="text-nowrap">Action</th>
-                  <th class="text-nowrap">Receiverfirstname</th>
-                  <th class="text-nowrap">Receiversurname</th>
+                  <th class="text-nowrap">Firstname</th>
+                  <th class="text-nowrap">Surname</th>
                     <th class="text-nowrap">transactiontimestamp</th>
                   <th class="text-nowrap">Message</th>
+                  <th class="text-nowrap">Currency</th>
                 </tr>
               </thead>
               <tbody>
@@ -176,7 +177,7 @@
                   <td>{{obj.paymentinstructionid}}</td>
                     <td>{{obj.receiverbankcode}}</td>
                     <td>{{obj.receiveraccountnumber}}</td>
-                  <td>{{obj.response_status}}</td>
+                  <td class="text-danger">{{obj.response_status}}</td>
                     <td>
                                 <div class="dropdown">
                                   <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -192,6 +193,7 @@
                   <td>{{obj.receiversurname}}</td>
                   <td>{{obj.transactiontimestamp.timestamp }}</td>
                   <td>{{obj.message}}</td>
+                  <td>{{obj.amount.currency }}</td>
                 </tr>
                 {% endfor %}
               </tbody>

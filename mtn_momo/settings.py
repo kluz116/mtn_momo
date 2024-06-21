@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'crispy_bootstrap4',
     'rest_framework',
     'ecw',]
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -86,11 +87,13 @@ REST_FRAMEWORK = {
     'DEFAULT_PARSER_CLASSES': (
         #'rest_framework_xml.parsers.XMLParser',
         'ecw.parsers.CustomXMLParser',
+        'ecw.parsers_xml.CustomXMLParser',
 
     ),
     'DEFAULT_RENDERER_CLASSES': (
         #'rest_framework_xml.renderers.XMLRenderer',
         'ecw.renderers.CustomXMLRenderer',
+        'ecw.renderers_xml.CustomXMLRenderers',
     ),
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.BasicAuthentication',

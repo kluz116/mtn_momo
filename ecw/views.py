@@ -1,7 +1,8 @@
+import uuid
 from decimal import Decimal
 from django.contrib import messages
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.decorators import login_required
@@ -12,9 +13,9 @@ from rest_framework.decorators import api_view, parser_classes, renderer_classes
 from rest_framework.response import Response
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
-
-from .serializers import PaymentInstructionRequestSerializer
-from .decorators import validate_signature
+import xml.etree.ElementTree as ET
+from .serializers import PaymentInstructionRequestSerializer, PaymentInstructionResponseSerializer
+from xml.sax.saxutils import unescape
 from .utility import getMessage, getbatchID, getSerialID
 
 PUBLIC_KEY_PEM = """-----BEGIN PUBLIC KEY-----
@@ -61,7 +62,7 @@ def getIndex(request):
     return render(request, 'index.html', {})
 
 
-def addDeposit(request):
+def addDepositxxx(request):
     form = DepositForm(request.POST or None)
     if request.method == 'POST':
         if form.is_valid():
@@ -111,6 +112,67 @@ def addDeposit(request):
                 return HttpResponseRedirect('/ecw/getDeposits')
             else:
                 return JsonResponse(response)
+    return render(request, 'create_deposit.html', {'form': form})
+
+def addDeposit(request):
+    if request.method == 'POST':
+        form = DepositForm(request.POST)
+        if form.is_valid():
+            bankcode = form['bankcode'].value()
+            accountnumber = form['accountnumber'].value()
+            amount = form['amount'].value()
+            receiver = form['receiver'].value()
+            transactiontimestamp = form['transactiontimestamp'].value()
+            currency = form['currency'].value()
+            message = form['message'].value()
+            banktransactionid = str(uuid.uuid4())
+
+            trx_description = f'MTN Deposit Cash Deposit {amount} MSSIDN: {receiver} at {transactiontimestamp}'
+
+            # Call nimbleCreditCustomer and check response
+            response = nimbleCreditCustomer("206803000001", amount, trx_description)
+            if getMessage(response) == 'Success':
+                # Call depositFunds and get response
+                res = depositFunds(bankcode, accountnumber, amount, transactiontimestamp, currency, receiver,
+                                   banktransactionid, message)
+
+                # Extract necessary data from response
+                first_name = res.get("receiverfirstname", "")
+                sur_name = res.get("receiversurname", "")
+                status = res.get("status", "")
+                trx_batchid = getbatchID(response)
+                trx_serialid = getSerialID(response)
+
+                # Prepare data for DepositFunds object
+                deposit_obj_data = {
+                    "bankcode": bankcode,
+                    "accountnumber": accountnumber,
+                    "amount": amount,
+                    "receiver": receiver,
+                    "transactiontimestamp": transactiontimestamp,
+                    "currency": currency,
+                    "banktransactionid": banktransactionid,
+                    "message": message,
+                    "receiverfirstname": first_name,
+                    "receiversurname": sur_name,
+                    "status": status,
+                    "trx_batchid": trx_batchid,
+                    "trx_serialid": trx_serialid
+                }
+
+                # Create DepositFunds object
+                obj = DepositFunds.objects.create(**deposit_obj_data)
+                obj.save()
+
+                # Display success message and redirect
+                messages.success(request, f'Successful deposit of {amount} UGX to {receiver} with status: {status}. TrxBatchID {trx_batchid} and SerialID {trx_serialid}')
+                return HttpResponseRedirect('/ecw/getDeposits')
+            else:
+                # Return response as JSON if nimbleCreditCustomer fails
+                return JsonResponse(response)
+    else:
+        form = DepositForm()
+
     return render(request, 'create_deposit.html', {'form': form})
 
 
@@ -204,63 +266,77 @@ def getAccountHolders(request):
     dep = AccountHolder.objects.all().order_by('-id')
     return render(request, 'ecw/account_holders.html', {'dep': dep})
 
-
 @api_view(['POST'])
-#@validate_signature(PUBLIC_KEY_PEM)
 @csrf_exempt
 @permission_classes([IsAuthenticated])
 def paymentInstruction(request):
-    x_signature = request.META.get('HTTP_X_SIGNATURE')
-    paymentinstructionid = request.data['paymentinstructionid']
-    transactiontimestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    bookingtimestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    banktransactionid = generate_random_trx_id()
-    currency = request.data['amount']['currency']
-    amount = request.data['amount']['amount']
-    random_challenge = get_challenge(x_signature)
-    response_status = 'PENDING'
+    try:
+        x_signature = request.META.get('HTTP_X_SIGNATURE')
+        paymentinstructionid = request.data.get('paymentinstructionid')
+        transactiontimestamp = request.data.get('transactiontimestamp', {}).get('timestamp', datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
+        bookingtimestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+        banktransactionid = str(uuid.uuid4())
+        currency = request.data.get('amount', {}).get('currency')
+        amount_value = request.data.get('amount', {}).get('amount')
+        random_challenge = get_challenge(x_signature)
+        response_status = 'PENDING'
 
-    x_signature_obj = {
-        "x_signature": x_signature,
-        "paymentinstructionid": paymentinstructionid}
+        x_signature_obj = {
+            "x_signature": x_signature,
+            "paymentinstructionid": paymentinstructionid
+        }
 
-    serializer = PaymentInstructionRequestSerializer(data=request.data)
-    if serializer.is_valid():
-        #serializer.save()
-        obj = Xsignature.objects.create(**x_signature_obj)
-        obj.save()
-        print('What is this', request.data['transactiontimestamp']['timestamp'])
-        transaction_timestamp = TransactionTimestamp.objects.create(
-            timestamp=request.data['transactiontimestamp']['timestamp'])
-        amount = Amount.objects.create(amount=request.data['amount']['amount'])
-        #currency = Amount.objects.create(amount=request.data['currency']['currency'])
+        # Save Xsignature object
+        x_signature_instance = Xsignature.objects.create(**x_signature_obj)
 
-        paymentinstruct = {'transactiontimestamp': transaction_timestamp,
-                           'amount': amount,
-                           'paymentinstructionid': request.data['paymentinstructionid'],
-                           'receiverbankcode': request.data['receiverbankcode'],
-                           'receiveraccountnumber': request.data['receiveraccountnumber'],
-                           'receiverfirstname': request.data['receiverfirstname'],
-                           'receiversurname': request.data['receiversurname'],
-                           'message': request.data['message'],
-                           'transmissioncounter': request.data['transmissioncounter'],
-                           'transactionid': request.data['transactionid'],
-                           'bookingtimestamp': bookingtimestamp,
-                           'banktransactionid': banktransactionid,
-                           'random_challenge': random_challenge,
-                           'response_status': response_status
-                           }
+        # Create transaction timestamp object
+        transaction_timestamp_instance = TransactionTimestamp.objects.create(
+            timestamp=transactiontimestamp
+        )
 
-        payment_object = PaymentInstructionRequest.objects.create(**paymentinstruct)
-        payment_object.save()
-        responserequest = paymentinstructionresponserequest(random_challenge, response_status, paymentinstructionid,
-                                                            banktransactionid, amount,
-                                                            currency,
-                                                            bookingtimestamp, transactiontimestamp)
-        return Response(responserequest, status=status.HTTP_200_OK, content_type="text/xml")
-    print(serializer.errors)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Create amount object
+        amount_instance = Amount.objects.create(
+            amount=amount_value,
+            currency=currency
+        )
 
+        # Create PaymentInstructionRequest object
+        payment_instruction_request_obj = PaymentInstructionRequest.objects.create(
+            transactiontimestamp=transaction_timestamp_instance,
+            amount=amount_instance,
+            paymentinstructionid=paymentinstructionid,
+            receiverbankcode=request.data.get('receiverbankcode'),
+            receiveraccountnumber=request.data.get('receiveraccountnumber'),
+            receiverfirstname=request.data.get('receiverfirstname'),
+            receiversurname=request.data.get('receiversurname'),
+            message='',
+            transmissioncounter=request.data.get('transmissioncounter'),
+            transactionid=request.data.get('transactionid'),
+            bookingtimestamp=bookingtimestamp,
+            banktransactionid=banktransactionid,
+            random_challenge=random_challenge,
+            response_status=response_status
+        )
+
+        # Serialize PaymentInstructionResponse
+        response_obj = {
+            'transactiontimestamp': {'timestamp': transactiontimestamp},
+            'amount': {'amount': Decimal(amount_value), 'currency': currency},
+            'bookingtimestamp': {'timestamp': bookingtimestamp},
+            'paymentinstructionid': paymentinstructionid,
+            'status': response_status,
+            'banktransactionid': banktransactionid
+        }
+
+        serializer_response = PaymentInstructionResponseSerializer(data=response_obj)
+
+        if serializer_response.is_valid():
+            return Response(serializer_response.data, status=status.HTTP_200_OK, content_type='text/xml')
+        else:
+            return Response(serializer_response.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
 def getPaymentInstructions(request):
     dep = PaymentInstructionRequest.objects.all().order_by('-id')
@@ -274,12 +350,15 @@ def PaymentInstructionsDetail(request):
 
 @login_required(login_url='/ecw/')
 def PaymentInstructionsDetail(request, id):
-    sec = PaymentInstructionRequest.objects.get(id=id)
-    '''if request.method == 'POST':
-        form = PaymentForm(request.POST, instance=sec)
+    sec = get_object_or_404(PaymentInstructionRequest, id=id)
+
+    if request.method == 'POST':
+        form = PaymentInstructionRequestForm(request.POST, instance=sec)
         if form.is_valid():
             form.save()
+            messages.info(request,f'Successful Withdraw')
             return HttpResponseRedirect('/ecw/getPaymentInstructions')
     else:
-        form = PaymentForm(instance=sec)'''
-    return render(request, 'ecw/update_payment_instruction.html', {})
+        form = PaymentInstructionRequestForm(instance=sec)
+
+    return render(request, 'ecw/update_payment_instruction.html', {'form': form})

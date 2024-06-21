@@ -14,41 +14,43 @@ class DepositForm(forms.ModelForm):
             'accountnumber': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account Number'}),
             'amount': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Amount'}),
             'receiver': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Receiver Phone Number'}),
-            'transactiontimestamp': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'transactiontimestamp'}),
+            'transactiontimestamp': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'transactiontimestamp'}),
             'currency': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'currency'}),
             #'banktransactionid': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'banktransactionid'}),
             'message': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'message'}),
 
         }
 
+
 class DepositFormExternal(forms.ModelForm):
     class Meta:
         model = DepositFunds
         fields = "__all__"
-        exclude = ( 'receiversurname', 'receiverfirstname','status','banktransactionid','trx_batchid','trx_serialid')
+        exclude = ('receiversurname', 'receiverfirstname', 'status', 'banktransactionid', 'trx_batchid', 'trx_serialid')
 
         widgets = {
             'bankcode': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Bank Code'}),
             'accountnumber': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account Number'}),
             'amount': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Amount'}),
             'receiver': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Put External ID '}),
-            'transactiontimestamp': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'transactiontimestamp'}),
+            'transactiontimestamp': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'transactiontimestamp'}),
             'currency': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'currency'}),
             #'banktransactionid': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'banktransactionid'}),
             'message': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'message'}),
 
         }
 
+
 class AccountHolderForm(forms.ModelForm):
     class Meta:
         model = AccountHolder
         fields = "__all__"
-        exclude = ('firstname', 'surname','accountholderstatus','profilename')
-
+        exclude = ('firstname', 'surname', 'accountholderstatus', 'profilename')
 
         widgets = {
             'msisdn': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Phone Number'}),
-
 
         }
 
@@ -61,7 +63,8 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = EcwUser
-        fields = ('username','firstname', 'lastname', 'branch', 'email', 'is_staff','needs_password_change', 'group', 'password1', 'password2',)
+        fields = ('username', 'firstname', 'lastname', 'branch', 'email', 'is_staff', 'needs_password_change', 'group',
+                  'password1', 'password2',)
         widgets = {
             'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}),
             'firstname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
@@ -106,6 +109,33 @@ class BranchForm(forms.ModelForm):
         }
 
 
+class PaymentInstructionRequestForm(forms.ModelForm):
+    amount_value = forms.FloatField(label='Amount', required=False,
+                                    widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    transactiontimestamp_value = forms.DateTimeField(label='Transaction Timestamp', required=False,
+                                                     widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    class Meta:
+        model = PaymentInstructionRequest
+        fields = [
+            'paymentinstructionid',
+            'bookingtimestamp',
+            'banktransactionid',
+            'response_status',
+            'receiveraccountnumber'
+        ]
+        widgets = {
 
-class PaymentForm(forms.Form):
-    pass
+            'paymentinstructionid': forms.TextInput(attrs={'maxlength': 20,'readonly': 'readonly'}),
+            'transactionid': forms.TextInput(attrs={'maxlength': 255, 'class': 'form-control'}),
+            'bookingtimestamp': forms.TextInput(attrs={'maxlength': 25, 'class': 'form-control','readonly': 'readonly'}),
+            'banktransactionid': forms.TextInput(attrs={'maxlength': 100, 'class': 'form-control', 'readonly': 'readonly'}),
+            'receiveraccountnumber': forms.TextInput(attrs={'maxlength': 50,'readonly': 'readonly','class': 'form-control'}),
+            'response_status': forms.TextInput(
+                attrs={'maxlength': 50, 'class': 'form-control', 'placeholder': 'Branch Code'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super(PaymentInstructionRequestForm, self).__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['amount_value'].initial = self.instance.amount.amount
+            self.fields['transactiontimestamp_value'].initial = self.instance.transactiontimestamp.timestamp

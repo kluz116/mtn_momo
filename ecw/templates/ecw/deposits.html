@@ -161,11 +161,10 @@
                   <th class="text-nowrap">Receiver</th>
                   <th class="text-nowrap">Transactiontimestamp</th>
                   <th class="text-nowrap">Currency</th>
-                  <th class="text-nowrap">Banktransactionid</th>
                    <th class="text-nowrap">Status</th>
                   <th class="text-nowrap">Receiverfirstname</th>
                   <th class="text-nowrap">Receiversurname</th>
-
+                  <th class="text-nowrap">Banktransactionid</th>
                   <th class="text-nowrap">Message</th>
                 </tr>
               </thead>
@@ -179,11 +178,10 @@
                   <td>{{obj.receiver}}</td>
                   <td>{{obj.transactiontimestamp |date:"Y-m-d H:m"}}</td>
                   <td>{{obj.currency}}</td>
-                  <td>{{obj.banktransactionid}}</td>
                   <td class="text-success">{{obj.status}}</td>
                   <td>{{obj.receiverfirstname}}</td>
                   <td>{{obj.receiversurname}}</td>
-
+                   <td>{{obj.banktransactionid}}</td>
                   <td>{{obj.message}}</td>
                 </tr>
                 {% endfor %}

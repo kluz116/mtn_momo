@@ -16,7 +16,7 @@ class DepositFunds(models.Model):
     receiver = models.CharField(max_length=35)
     transactiontimestamp = models.DateTimeField(default=datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
     currency = models.CharField(max_length=5, blank=False, null=False, default='UGX')
-    banktransactionid = models.CharField(max_length=15, null=False, blank=False)
+    banktransactionid = models.CharField(max_length=100, null=False, blank=False)
     message = models.CharField(max_length=50, null=False, blank=False)
     receiverfirstname = models.CharField(max_length=50, null=False, blank=False)
     receiversurname = models.CharField(max_length=50, null=False, blank=False)
@@ -35,11 +35,22 @@ class AccountHolder(models.Model):
 
 class TransactionTimestamp(models.Model):
     timestamp = models.CharField(max_length=100)
+    def __str__(self):
+        return self.timestamp
+
+class BookingTimestamp(models.Model):
+    timestamp = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.timestamp
 
 
 class Amount(models.Model):
     amount = models.FloatField()
     currency = models.CharField(max_length=3)
+
+    def __float__(self):
+        return self.amount
 
 
 class PaymentInstructionRequest(models.Model):
@@ -48,15 +59,30 @@ class PaymentInstructionRequest(models.Model):
     paymentinstructionid = models.CharField(max_length=20)
     receiverbankcode = models.CharField(max_length=20)
     receiveraccountnumber = models.CharField(max_length=20)
-    receiverfirstname = models.CharField(max_length=50)
-    receiversurname = models.CharField(max_length=50)
-    message = models.CharField(max_length=255)
+    receiverfirstname = models.CharField(max_length=50,null=True,blank=True)
+    receiversurname = models.CharField(max_length=50,null=True,blank=True)
+    message = models.CharField(max_length=255,null=True,blank=True)
     transmissioncounter = models.CharField(max_length=255, null=True)
     transactionid = models.CharField(max_length=255, null=True)
     bookingtimestamp = models.CharField(max_length=25,blank=True,null=True)
-    banktransactionid = models.CharField(max_length=25,null=True,blank=True)
+    banktransactionid = models.CharField(max_length=100,null=True,blank=True)
     random_challenge = models.CharField(max_length=50,blank=True,null=True)
     response_status = models.CharField(max_length=50,blank=True,null=True,default='PENDING')
+
+
+
+class PaymentInstructionResponse(models.Model):
+    transactiontimestamp = models.OneToOneField(TransactionTimestamp, on_delete=models.CASCADE)
+    bookingtimestamp = models.OneToOneField(BookingTimestamp, on_delete=models.CASCADE)
+    amount = models.OneToOneField(Amount, on_delete=models.CASCADE)
+    status = models.CharField(max_length=50,blank=True,null=True,default='PENDING')
+    paymentinstructionid = models.CharField(max_length=20)
+    banktransactionid = models.CharField(max_length=100,null=True,blank=True)
+
+
+
+
+
 
 
 class Xsignature(models.Model):

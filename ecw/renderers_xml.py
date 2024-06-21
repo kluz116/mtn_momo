@@ -2,8 +2,8 @@
 from rest_framework_xml.renderers import XMLRenderer
 
 
-class CustomXMLRenderer(XMLRenderer):
-    root_tag_name = 'ns4:paymentinstructionrequest' or 'ns2:paymentinstructionrequest'
+class CustomXMLRenderers(XMLRenderer):
+    root_tag_name = 'ns2:paymentinstructionrequest'
     media_type = 'text/xml'
 
     def render(self, data, accepted_media_type=None, renderer_context=None):
