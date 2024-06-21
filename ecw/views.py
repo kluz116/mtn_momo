@@ -13,7 +13,7 @@ from rest_framework.decorators import api_view, parser_classes, renderer_classes
 from rest_framework.response import Response
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
-import xml.etree.ElementTree as ET
+from .PaymentInstructionResponseXMLRenderer import PaymentInstructionResponseXMLRenderer
 from .serializers import PaymentInstructionRequestSerializer, PaymentInstructionResponseSerializer
 from xml.sax.saxutils import unescape
 from .utility import getMessage, getbatchID, getSerialID
@@ -114,6 +114,7 @@ def addDepositxxx(request):
                 return JsonResponse(response)
     return render(request, 'create_deposit.html', {'form': form})
 
+
 def addDeposit(request):
     if request.method == 'POST':
         form = DepositForm(request.POST)
@@ -136,37 +137,43 @@ def addDeposit(request):
                 res = depositFunds(bankcode, accountnumber, amount, transactiontimestamp, currency, receiver,
                                    banktransactionid, message)
 
-                # Extract necessary data from response
-                first_name = res.get("receiverfirstname", "")
-                sur_name = res.get("receiversurname", "")
-                status = res.get("status", "")
-                trx_batchid = getbatchID(response)
-                trx_serialid = getSerialID(response)
+                if res == 'TARGET_NOT_FOUND':
+                    messages.warning(request, f"Phone number {receiver} not found")
+                else:
+                    # Extract necessary data from response
+                    first_name = res.get("receiverfirstname", "")
+                    sur_name = res.get("receiversurname", "")
+                    status = res.get("status", "")
+                    trx_batchid = getbatchID(response)
+                    trx_serialid = getSerialID(response)
 
-                # Prepare data for DepositFunds object
-                deposit_obj_data = {
-                    "bankcode": bankcode,
-                    "accountnumber": accountnumber,
-                    "amount": amount,
-                    "receiver": receiver,
-                    "transactiontimestamp": transactiontimestamp,
-                    "currency": currency,
-                    "banktransactionid": banktransactionid,
-                    "message": message,
-                    "receiverfirstname": first_name,
-                    "receiversurname": sur_name,
-                    "status": status,
-                    "trx_batchid": trx_batchid,
-                    "trx_serialid": trx_serialid
-                }
+                    # Prepare data for DepositFunds object
+                    deposit_obj_data = {
+                        "bankcode": bankcode,
+                        "accountnumber": accountnumber,
+                        "amount": amount,
+                        "receiver": receiver,
+                        "transactiontimestamp": transactiontimestamp,
+                        "currency": currency,
+                        "banktransactionid": banktransactionid,
+                        "message": message,
+                        "receiverfirstname": first_name,
+                        "receiversurname": sur_name,
+                        "status": status,
+                        "trx_batchid": trx_batchid,
+                        "trx_serialid": trx_serialid
+                    }
 
-                # Create DepositFunds object
-                obj = DepositFunds.objects.create(**deposit_obj_data)
-                obj.save()
+                    # Create DepositFunds object
+                    obj = DepositFunds.objects.create(**deposit_obj_data)
+                    obj.save()
 
-                # Display success message and redirect
-                messages.success(request, f'Successful deposit of {amount} UGX to {receiver} with status: {status}. TrxBatchID {trx_batchid} and SerialID {trx_serialid}')
-                return HttpResponseRedirect('/ecw/getDeposits')
+                    # Display success message and redirect
+                    messages.success(request,
+                                     f'Successful deposit of {amount} UGX to {receiver} with status: {status}. TrxBatchID {trx_batchid} and SerialID {trx_serialid}')
+                    return HttpResponseRedirect('/ecw/getDeposits')
+
+
             else:
                 # Return response as JSON if nimbleCreditCustomer fails
                 return JsonResponse(response)
@@ -266,14 +273,19 @@ def getAccountHolders(request):
     dep = AccountHolder.objects.all().order_by('-id')
     return render(request, 'ecw/account_holders.html', {'dep': dep})
 
+
 @api_view(['POST'])
 @csrf_exempt
 @permission_classes([IsAuthenticated])
+@renderer_classes([PaymentInstructionResponseXMLRenderer])
 def paymentInstruction(request):
     try:
+
+
         x_signature = request.META.get('HTTP_X_SIGNATURE')
         paymentinstructionid = request.data.get('paymentinstructionid')
-        transactiontimestamp = request.data.get('transactiontimestamp', {}).get('timestamp', datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
+        transactiontimestamp = request.data.get('transactiontimestamp', {}).get('timestamp', datetime.now().strftime(
+            "%Y-%m-%dT%H:%M:%S"))
         bookingtimestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
         banktransactionid = str(uuid.uuid4())
         currency = request.data.get('amount', {}).get('currency')
@@ -318,6 +330,15 @@ def paymentInstruction(request):
             response_status=response_status
         )
 
+        time_stamp = round(time.time())
+        final_str = f'{random_challenge};{time_stamp}'
+        values_to_beSigned = f'{random_challenge};{time_stamp};{status};{paymentinstructionid};{banktransactionid};{amount_value};{currency}'.encode(
+            'utf-8')
+
+        x = signMsg(values_to_beSigned)
+        yy = f'{final_str};{x}'
+        original_signer = 'ID:FTBbank/USER'
+
         # Serialize PaymentInstructionResponse
         response_obj = {
             'transactiontimestamp': {'timestamp': transactiontimestamp},
@@ -331,12 +352,17 @@ def paymentInstruction(request):
         serializer_response = PaymentInstructionResponseSerializer(data=response_obj)
 
         if serializer_response.is_valid():
-            return Response(serializer_response.data, status=status.HTTP_200_OK, content_type='text/xml')
+            response = Response(serializer_response.data, status=status.HTTP_200_OK, content_type='text/xml')
+            response['X-Signature'] = yy
+            response['X-Original-Signer'] = original_signer
+
+            return response
         else:
             return Response(serializer_response.errors, status=status.HTTP_400_BAD_REQUEST)
 
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
 
 def getPaymentInstructions(request):
     dep = PaymentInstructionRequest.objects.all().order_by('-id')
@@ -356,7 +382,7 @@ def PaymentInstructionsDetail(request, id):
         form = PaymentInstructionRequestForm(request.POST, instance=sec)
         if form.is_valid():
             form.save()
-            messages.info(request,f'Successful Withdraw')
+            messages.info(request, f'Successful Withdraw')
             return HttpResponseRedirect('/ecw/getPaymentInstructions')
     else:
         form = PaymentInstructionRequestForm(instance=sec)

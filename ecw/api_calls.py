@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import requests
+from django.http import JsonResponse
 
 from ecw.constants import paymentinstructionresponse, certificate_path, key_path, deposit
 from ecw.encrypt import *
@@ -175,16 +176,20 @@ def depositFunds(bankcode, accountnumber, amount, transactiontimestamp, currency
     }
 
     response = requests.request("POST", url, headers=headers, data=payload, cert=(cert_path, key_path), verify=False)
-    print(response.text)
+    print(json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4))
     results = json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4)
     deposit_response = json.loads(results)
-    status = deposit_response["ns4:depositresponse"]["status"]
-    financialtransactionid = deposit_response["ns4:depositresponse"]["financialtransactionid"]
+    if "ns2:errorResponse" in deposit_response:
+        #print(deposit_response["ns2:errorResponse"]["@errorcode"])
+        return deposit_response["ns2:errorResponse"]["@errorcode"]
+    else:
+        status = deposit_response["ns4:depositresponse"]["status"]
+        financialtransactionid = deposit_response["ns4:depositresponse"]["financialtransactionid"]
 
-    return {"receiverfirstname": receiverfirstname,
-            "receiversurname": receiversurname,
-            "status": status,
-            "financialtransactionid": financialtransactionid}
+        return {"receiverfirstname": receiverfirstname,
+                "receiversurname": receiversurname,
+                "status": status,
+                "financialtransactionid": financialtransactionid}
 
 
 def depositFundsExternal(bankcode, accountnumber, amount, transactiontimestamp, currency, phone_number,
