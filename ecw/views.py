@@ -16,7 +16,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from django.views.decorators.csrf import csrf_exempt
 from .PaymentInstructionResponseXMLRenderer import PaymentInstructionResponseXMLRenderer
-from .serializers import  PaymentInstructionResponseSerializer
+from .serializers import PaymentInstructionResponseSerializer
 from .utility import *
 
 PUBLIC_KEY_PEM = """-----BEGIN PUBLIC KEY-----
@@ -448,15 +448,17 @@ def generate_excel(request):
                     if start_date and end_date:
                         query = query.filter(transactiontimestamp__range=(start_date, end_date))
                     else:
-                        return messages.error(request, 'Invalid date format. Dates must be in YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ] format.')
+                        return messages.error(request,
+                                              'Invalid date format. Dates must be in YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ] format.')
                 except ValueError:
-                    messages.error(request,'Invalid date format. Dates must be in YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ] format.')
+                    messages.error(request,
+                                   'Invalid date format. Dates must be in YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ] format.')
 
             # Convert the QuerySet to a DataFrame
             persons = query.values('bankcode', 'accountnumber', 'amount', 'receiver',
-                                                             'transactiontimestamp', 'currency', 'banktransactionid',
-                                                             'message', 'receiverfirstname', 'receiversurname',
-                                                             'status', 'trx_batchid', 'trx_serialid')
+                                   'transactiontimestamp', 'currency', 'banktransactionid',
+                                   'message', 'receiverfirstname', 'receiversurname',
+                                   'status', 'trx_batchid', 'trx_serialid')
             df = pd.DataFrame(persons)
 
             # Convert datetime columns to timezone-unaware
@@ -475,12 +477,49 @@ def generate_excel(request):
     return render(request, 'ecw/deposit_report.html', {'form': form})
 
 
-'''def generate_receipt_pdf(request, id):
-    receipt = DepositFunds.objects.get(id=id)
-    template = get_template('receipt_template.html')
-    html = template.render({'receipt': receipt})
-    pdf_file = HTML(string=html).write_pdf()
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="receipt_{id}.pdf"'
-    return response
-'''
+@login_required(login_url='/ecw/')
+def generate_excel_withdraw(request):
+    form = WithdrawReportForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            from_transactiontimestamp_value = form['from_transactiontimestamp_value'].value()
+            to_transactiontimestamp_value = form['to_transactiontimestamp_value'].value()
+
+            query = PaymentInstructionRequest.objects.all()
+
+            # Parse dates and filter queryset
+            if from_transactiontimestamp_value and to_transactiontimestamp_value:
+                try:
+                    start_date = parse_datetime(to_transactiontimestamp_value)
+                    end_date = parse_datetime(to_transactiontimestamp_value)
+                    if start_date and end_date:
+                        query = query.filter(bookingtimestamp__range=(start_date, end_date))
+                    else:
+                        return messages.error(request,
+                                              'Invalid date format. Dates must be in YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ] format.')
+                except ValueError:
+                    messages.error(request,
+                                   'Invalid date format. Dates must be in YYYY-MM-DD HH:MM[:ss[.uuuuuu]][TZ] format.')
+
+            # Convert the QuerySet to a DataFrame
+            persons = query.values('paymentinstructionid', 'receiverbankcode', 'amount', 'receiveraccountnumber',
+                                   'transactiontimestamp', 'transactionid', 'banktransactionid',
+                                   'message', 'receiverfirstname', 'receiversurname',
+                                   'response_status', 'transmissioncounter', 'bookingtimestamp')
+            df = pd.DataFrame(persons)
+
+            # Convert datetime columns to timezone-unaware
+            if 'bookingtimestamp' in df.columns:
+                df['bookingtimestamp'] = pd.to_datetime(df['bookingtimestamp']).dt.tz_convert(None)
+
+            # Create an HTTP response with the appropriate Excel headers
+            response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = f'attachment; filename=withdraw_{to_transactiontimestamp_value}.xlsx'
+
+            # Use Pandas to write the DataFrame to an Excel file
+            with pd.ExcelWriter(response, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False, sheet_name='Deposits')
+
+            return response
+    return render(request, 'ecw/withdraw_report.html', {'form': form})
+

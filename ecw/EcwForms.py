@@ -171,3 +171,25 @@ class DepositReportForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['from_transactiontimestamp_value'].initial = self.instance.transactiontimestamp.timestamp
             self.fields['to_transactiontimestamp_value'].initial = self.instance.transactiontimestamp.timestamp
+
+
+class WithdrawReportForm(forms.ModelForm):
+    from_transactiontimestamp_value = forms.DateTimeField(label='From Transaction Timestamp', required=False,
+                                                     widget=forms.TextInput(attrs={'type': 'date', 'class': 'form-control', 'placeholder': 'From Transaction Timestamp'}))
+    to_transactiontimestamp_value = forms.DateTimeField(label='To Transaction Timestamp', required=False,
+                                                     widget=forms.TextInput(attrs={'type': 'date', 'class': 'form-control', 'placeholder': 'To Transaction Timestamp'}))
+
+    class Meta:
+        model = PaymentInstructionRequest
+        fields = [
+
+        ]
+        exclude = (
+            'receiversurname', 'receiverfirstname', 'status', 'banktransactionid', 'trx_batchid', 'trx_serialid',
+            'message')
+
+    def __init__(self, *args, **kwargs):
+        super(WithdrawReportForm, self).__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            self.fields['from_transactiontimestamp_value'].initial = self.instance.transactiontimestamp.timestamp
+            self.fields['to_transactiontimestamp_value'].initial = self.instance.transactiontimestamp.timestamp

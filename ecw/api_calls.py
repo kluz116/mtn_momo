@@ -5,6 +5,8 @@ from ecw.encrypt import *
 import xmltodict
 import json
 
+from ecw.models import AppLogs
+
 
 def close_all_sessions():
     payload = json.dumps({
@@ -71,6 +73,10 @@ def get_signing_certificate():
 
     response = requests.post(getsigningcertificate_url, headers=headers, data=payload,
                              cert=(certificate_path, key_path), verify=False)
+
+    obj_logs = {"url": getsigningcertificate_url, "headers": headers, "body": payload}
+    obj = AppLogs.objects.create(**obj_logs)
+    obj.save()
     return json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4)
 
 
@@ -95,6 +101,11 @@ def get_account_holder_info(phone_number):
 
     response = requests.post(getaccountholderinfo_url, headers=headers, data=payload, cert=(certificate_path, key_path),
                              verify=False)
+
+    obj_logs = {"url": getaccountholderinfo_url, "headers": headers, "body": payload}
+    obj = AppLogs.objects.create(**obj_logs)
+    obj.save()
+
     obj_response = json.loads(json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4))
 
     if "ns2:errorResponse" in obj_response:
@@ -132,6 +143,11 @@ def get_account_holder_info_deposits(phone_number):
 
     response = requests.post(getaccountholderinfo_url, headers=headers, data=payload, cert=(certificate_path, key_path),
                              verify=False)
+
+    obj_logs = {"url": getaccountholderinfo_url, "headers": headers, "body": payload}
+    obj = AppLogs.objects.create(**obj_logs)
+    obj.save()
+
     obj_response = json.loads(json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4))
 
     if "ns2:errorResponse" in obj_response:
@@ -165,6 +181,11 @@ def getAccontHolderInfoDeposits(phone_nmber):
 
     response = requests.request("POST", getaccountholderinfo_url, headers=headers, data=payload,
                                 cert=(certificate_path, key_path), verify=False)
+
+    obj_logs = {"url": getaccountholderinfo_url, "headers": headers, "body": payload}
+    obj = AppLogs.objects.create(**obj_logs)
+    obj.save()
+
     results = json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4)
     obj_response = json.loads(results)
     if "ns2:errorResponse" in obj_response:
@@ -225,6 +246,11 @@ def deposit_funds(bankcode, accountnumber, amount, transactiontimestamp, currenc
 
     response = requests.post(deposit_url, headers=headers, data=payload, cert=(certificate_path, key_path),
                              verify=False)
+
+    obj_logs = {"url": deposit_url, "headers": headers, "body": payload}
+    obj = AppLogs.objects.create(**obj_logs)
+    obj.save()
+
     deposit_response = json.loads(json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4))
 
     if "ns2:errorResponse" in deposit_response:
@@ -277,6 +303,11 @@ def deposit_funds_external(bankcode, accountnumber, amount, transactiontimestamp
 
     response = requests.post(deposit_url, headers=headers, data=payload, cert=(certificate_path, key_path),
                              verify=False)
+
+    obj_logs = {"url": deposit_url, "headers": headers, "body": payload}
+    obj = AppLogs.objects.create(**obj_logs)
+    obj.save()
+
     deposit_response = json.loads(json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4))
 
     if "ns2:errorResponse" in deposit_response:
@@ -391,7 +422,6 @@ def nimbleCreditCustomer(AccountID, Amount, trx_description):
     }
 
     response = requests.request("POST", nimble_add_cash_url, headers=headers, data=payload)
-
     return response.json()
 
 
@@ -433,6 +463,10 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
 
     response = requests.post(paymentinstructionresponse_url, headers=headers, data=payload,
                              cert=(certificate_path, key_path), verify=False)
+
+    obj_logs = {"url": paymentinstructionresponse_url, "headers": headers, "body": payload}
+    obj = AppLogs.objects.create(**obj_logs)
+    obj.save()
 
     response_dict = xmltodict.parse(response.text, process_namespaces=False)
     response_json = json.dumps(response_dict, indent=4)
