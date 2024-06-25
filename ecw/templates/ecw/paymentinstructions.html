@@ -6,7 +6,7 @@
   <!--<![endif]-->
   <head>
     <meta charset="utf-8" />
-    <title>Payment Instructions</title>
+    <title>Agent Withdraws</title>
     <meta
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
       name="viewport"
@@ -101,16 +101,16 @@
 
       <!-- begin #content -->
       <div id="content" class="content">
-        {% include 'messages.html' %}
+        {% include 'ecw/messages.html' %}
         <!-- begin breadcrumb -->
         <ol class="breadcrumb pull-right">
           <li class="breadcrumb-item"><a href="javascript:;">Home</a></li>
-          <li class="breadcrumb-item active">Payment Instructions</li>
+          <li class="breadcrumb-item active">Agent Withdraws</li>
         </ol>
         <!-- end breadcrumb -->
         <!-- begin page-header -->
         <h1 class="page-header">
-          <small>Payment Instructions</small>
+          <small>Agent Withdraws</small>
         </h1>
         <!-- end page-header -->
         <!-- begin panel -->
@@ -143,7 +143,7 @@
                 ><i class="fa fa-times"></i
               ></a>
             </div>
-            <h4 class="panel-title">Payment Instructions</h4>
+            <h4 class="panel-title">Agent Withdraws</h4>
           </div>
           <!-- end panel-heading -->
           <!-- begin panel-body -->
@@ -154,10 +154,8 @@
             >
               <thead>
                 <tr>
-                  <th class="text-nowrap">Ref</th>
-
-                  <th class="text-nowrap">Amount</th>
                   <th class="text-nowrap">paymentinstructionid</th>
+                  <th class="text-nowrap">Amount</th>
                   <th class="text-nowrap">Receiverbankcode</th>
                   <th class="text-nowrap">Receiveraccountnumber</th>
                   <th class="text-nowrap">Status</th>
@@ -167,14 +165,17 @@
                     <th class="text-nowrap">transactiontimestamp</th>
                   <th class="text-nowrap">Message</th>
                   <th class="text-nowrap">Currency</th>
+                  <th class="text-nowrap">banktransactionid</th>
+                  <th class="text-nowrap">BookingTime</th>
+
                 </tr>
               </thead>
               <tbody>
                 {% for obj in dep %}
                 <tr>
-                  <td>000{{obj.id}}</td>
-                  <td>{{obj.amount.amount |floatformat:2}}</td>
                   <td>{{obj.paymentinstructionid}}</td>
+                  <td>{{obj.amount.amount |floatformat:2}}</td>
+
                     <td>{{obj.receiverbankcode}}</td>
                     <td>{{obj.receiveraccountnumber}}</td>
                   <td class="text-danger">{{obj.response_status}}</td>
@@ -194,6 +195,9 @@
                   <td>{{obj.transactiontimestamp.timestamp }}</td>
                   <td>{{obj.message}}</td>
                   <td>{{obj.amount.currency }}</td>
+                  <td>{{obj.banktransactionid }}</td>
+                  <td>{{obj.bookingtimestamp }}</td>
+
                 </tr>
                 {% endfor %}
               </tbody>

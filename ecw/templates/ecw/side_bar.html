@@ -70,8 +70,7 @@
           <span>Withdraws</span>
         </a>
         <ul class="sub-menu">
-          <li class="active"><a href="{% url 'getPaymentInstructions' %}">Payment Instructions</a></li>
-          <li><a href="{% url 'getIndex' %}">Create Withdraw</a></li>
+          <li class="active"><a href="{% url 'getPaymentInstructions' %}">Agent Withdraws</a></li>
         </ul>
       </li>
 
@@ -84,7 +83,7 @@
         </a>
         <ul class="sub-menu">
           <li class="active">
-            <a href="{% url 'getDeposits' %}">Generate Report</a>
+            <a href="{% url 'generate_excel' %}">Deposit Report</a>
           </li>
         </ul>
       </li>

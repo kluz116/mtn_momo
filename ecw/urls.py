@@ -18,6 +18,8 @@ urlpatterns = [
     path('paymentinstruction', views.paymentInstruction, name='paymentInstruction'),
     path('getPaymentInstructions', views.getPaymentInstructions, name='getPaymentInstructions'),
     path('PaymentInstructionsDetail/<int:id>/', views.PaymentInstructionsDetail, name='PaymentInstructionsDetail'),
+    path('generate_excel', views.generate_excel, name='generate_excel'),
+
 
 
 

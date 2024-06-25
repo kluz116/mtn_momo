@@ -1,8 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>{% load static %}
+{% load static %}
 <!DOCTYPE html>
 <!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
 <!--[if !IE]><!-->
@@ -10,7 +6,7 @@
 <!--<![endif]-->
 <head>
 	<meta charset="utf-8" />
-	<title>Add Deposits</title>
+	<title>Add Deposits External</title>
 	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
 	<meta content="" name="description" />
 	<meta content="" name="author" />
@@ -82,7 +78,7 @@
 						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
 						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
 					</div>
-					<h4 class="panel-title">Add Deposits</h4>
+					<h4 class="panel-title">Add Deposits External</h4>
 				</div>
 				<!-- end panel-heading -->
 				<!-- begin panel-body -->
@@ -100,7 +96,8 @@
                                     {% endfor %}
 
                                  <br>
-								<button class="btn btn-sm btn-outline-success">Add Deposit</button><br><br>
+								<button class="btn btn-sm btn-outline-success">Add Deposit</button>
+									<a href="/ecw/getDeposits" class="btn btn-sm btn-outline-danger">Cancel</a>
                                 </div>
 					</form>
 				</div>

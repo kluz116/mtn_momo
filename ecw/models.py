@@ -17,7 +17,7 @@ class DepositFunds(models.Model):
     transactiontimestamp = models.DateTimeField(default=datetime.now().strftime("%Y-%m-%dT%H:%M:%S"))
     currency = models.CharField(max_length=5, blank=False, null=False, default='UGX')
     banktransactionid = models.CharField(max_length=100, null=False, blank=False)
-    message = models.CharField(max_length=50, null=False, blank=False)
+    message = models.TextField(null=False, blank=False)
     receiverfirstname = models.CharField(max_length=50, null=False, blank=False)
     receiversurname = models.CharField(max_length=50, null=False, blank=False)
     status = models.CharField(max_length=50, null=False, blank=False)
@@ -52,6 +52,11 @@ class Amount(models.Model):
     def __float__(self):
         return self.amount
 
+    def save(self, *args, **kwargs):
+        if self.amount is not None:
+            self.price = round(self.amount, 2)
+        super(Amount, self).save(*args, **kwargs)
+
 
 class PaymentInstructionRequest(models.Model):
     transactiontimestamp = models.OneToOneField(TransactionTimestamp, on_delete=models.CASCADE)
@@ -61,7 +66,7 @@ class PaymentInstructionRequest(models.Model):
     receiveraccountnumber = models.CharField(max_length=20)
     receiverfirstname = models.CharField(max_length=50,null=True,blank=True)
     receiversurname = models.CharField(max_length=50,null=True,blank=True)
-    message = models.CharField(max_length=255,null=True,blank=True)
+    message = models.TextField(null=True,blank=True)
     transmissioncounter = models.CharField(max_length=255, null=True)
     transactionid = models.CharField(max_length=255, null=True)
     bookingtimestamp = models.CharField(max_length=25,blank=True,null=True)

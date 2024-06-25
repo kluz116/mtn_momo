@@ -13,11 +13,12 @@
 						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-warning" data-click="panel-collapse"><i class="fa fa-minus"></i></a>
 						<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-danger" data-click="panel-remove"><i class="fa fa-times"></i></a>
 					</div>
-					<h4 class="panel-title">Clear Payment</h4>
+					<h4 class="panel-title">Clear Withdraw</h4>
 				</div>
 				<!-- end panel-heading -->
 				<!-- begin panel-body -->
 				<div class="panel-body">
+					{% include 'ecw/messages.html' %}
 					<form class="form-horizontal" method="post" action="">
 								<div class="col-md-12">
                                  {% csrf_token %}
@@ -25,8 +26,8 @@
 
                                  <br><br>
 
-									<button type="submit" class="btn btn-sm btn-outline-success">Clear Payment</button>
-            						<a href="/ecw/getPaymentInstructions" class="btn btn-sm btn-outline-secondary">Cancel</a>
+									<button type="submit" class="btn btn-sm btn-outline-success">Clear Withdraw</button>
+            						<a href="/ecw/getPaymentInstructions" class="btn btn-sm btn-outline-danger">Cancel</a>
                                 </div>
 					</form>
 				</div>
