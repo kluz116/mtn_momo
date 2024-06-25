@@ -3,18 +3,18 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, username, password=None, **extra_fields):
+    def create_user(self, operator_id, password=None, **extra_fields):
         """
         Create and save a user with the given username and password.
         """
-        if not username:
+        if not operator_id:
             raise ValueError(_("The Username must be set"))
-        user = self.model(username=username, **extra_fields)
+        user = self.model(operator_id=operator_id, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, username, password=None, **extra_fields):
+    def create_superuser(self, operator_id, password=None, **extra_fields):
         """
         Create and save a superuser with the given username and password.
         """
@@ -26,4 +26,4 @@ class CustomUserManager(BaseUserManager):
         if extra_fields.get('is_superuser') is not True:
             raise ValueError(_('Superuser must have is_superuser=True.'))
 
-        return self.create_user(username, password, **extra_fields)
+        return self.create_user(operator_id, password, **extra_fields)

@@ -1,6 +1,6 @@
 close_session_url = "http://10.255.201.179:8092/api/v1/Common/CloseAllSessions"
 paymentinstructionresponse_url = 'https://212.88.125.201:8027/banks/paymentinstructionresponse'
-paymentinstructionresponserequest = 'https://212.88.125.201:8027/banks/paymentinstructionresponserequest'
+paymentinstructionresponserequest_url = 'https://212.88.125.201:8027/banks/paymentinstructionresponserequest'
 token = 'http://10.255.201.179:8093/api/v1/Token/LoginUser'
 deposit_url = "https://212.88.125.201:8027/banks/deposit"
 getsigningcertificate_url = 'https://212.88.125.201:8027/banks/getsigningcertificate'

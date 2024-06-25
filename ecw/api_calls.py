@@ -1,5 +1,7 @@
 from datetime import datetime
 import requests
+from django.http import request
+
 from ecw.constants import *
 from ecw.encrypt import *
 import xmltodict
@@ -267,6 +269,8 @@ def deposit_funds(bankcode, accountnumber, amount, transactiontimestamp, currenc
     return 'Error, contact system administrator'
 
 
+
+
 def deposit_funds_external(bankcode, accountnumber, amount, transactiontimestamp, currency, phone_number,
                            banktransactionid, message):
     receiver = f'FRI:{phone_number}/ext'
@@ -464,7 +468,9 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
     response = requests.post(paymentinstructionresponse_url, headers=headers, data=payload,
                              cert=(certificate_path, key_path), verify=False)
 
-    obj_logs = {"url": paymentinstructionresponse_url, "headers": headers, "body": payload}
+    print(response.text)
+'''
+    obj_logs = {"url": paymentinstructionresponserequest_url, "headers": headers, "body": payload}
     obj = AppLogs.objects.create(**obj_logs)
     obj.save()
 
@@ -473,7 +479,10 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
 
     withdraw_response = json.loads(response_json)
 
+    print(withdraw_response)
+
     if "ns2:errorResponse" in withdraw_response:
         return withdraw_response["ns2:errorResponse"]["@errorcode"]
     else:
         return response.text
+        '''

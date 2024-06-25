@@ -60,6 +60,7 @@ MIDDLEWARE = [
     'django_currentuser.middleware.ThreadLocalUserMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'ecw.middleware.AuditLogMiddleware',
 ]
 
 ROOT_URLCONF = 'mtn_momo.urls'

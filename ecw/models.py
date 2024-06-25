@@ -4,6 +4,8 @@ from django.contrib.auth.models import PermissionsMixin, Group
 from django.utils import timezone
 from datetime import datetime
 from django.db import models
+
+from mtn_momo import settings
 from .managers import CustomUserManager
 
 
@@ -105,7 +107,7 @@ class EcwGroup(Group):
 
 
 class EcwUser(AbstractBaseUser, PermissionsMixin):
-    username = models.CharField(max_length=255, unique=True)
+    operator_id = models.CharField(max_length=255, unique=True)
     email = models.EmailField(blank=True, null=True)
     firstname = models.CharField(max_length=50, blank=True)
     lastname = models.CharField(max_length=50, blank=True)
@@ -117,13 +119,13 @@ class EcwUser(AbstractBaseUser, PermissionsMixin):
     group = models.ForeignKey(EcwGroup, on_delete=models.CASCADE, blank=True, null=True)
     needs_password_change = models.BooleanField(default=True)
 
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'operator_id'
     REQUIRED_FIELDS = []
 
     objects = CustomUserManager()
 
     def __str__(self):
-        return f' {self.username}'
+        return f' {self.operator_id}'
 
 
 class AppLogs(models.Model):
@@ -134,3 +136,28 @@ class AppLogs(models.Model):
 
     def __str__(self):
         return f' {self.url}'
+
+
+# models.py
+from django.db import models
+
+
+
+class AuditLog(models.Model):
+    ACTION_CHOICES = (
+        ('CREATE', 'Create'),
+        ('UPDATE', 'Update'),
+        ('DELETE', 'Delete'),
+        ('LOGIN', 'Login'),
+        ('LOGOUT', 'Logout'),
+    )
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+    model_name = models.CharField(max_length=100)
+    object_id = models.CharField(max_length=100)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    changes = models.TextField(null=True, blank=True)  # Optional: to store changes
+
+    def __str__(self):
+        return f'{self.user} {self.action} {self.model_name} {self.object_id} at {self.timestamp}'

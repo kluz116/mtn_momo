@@ -156,15 +156,16 @@
                 <tr>
                   <th class="text-nowrap">paymentinstructionid</th>
                   <th class="text-nowrap">Amount</th>
-                  <th class="text-nowrap">Receiverbankcode</th>
-                  <th class="text-nowrap">Receiveraccountnumber</th>
+                  <th class="text-nowrap">Bankcode</th>
+                  <th class="text-nowrap">Accountnumber</th>
                   <th class="text-nowrap">Status</th>
                   <th class="text-nowrap">Action</th>
                   <th class="text-nowrap">Firstname</th>
                   <th class="text-nowrap">Surname</th>
                     <th class="text-nowrap">transactiontimestamp</th>
-                  <th class="text-nowrap">Message</th>
                   <th class="text-nowrap">Currency</th>
+                  <th class="text-nowrap">Message</th>
+
                   <th class="text-nowrap">banktransactionid</th>
                   <th class="text-nowrap">BookingTime</th>
 
@@ -181,8 +182,8 @@
                   <td class="text-danger">{{obj.response_status}}</td>
                     <td>
                                 <div class="dropdown">
-                                  <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    Action
+                                  <button class="btn btn-outline-danger btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    #
                                   </button>
                                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                                     <a class="dropdown-item" href="{% url 'PaymentInstructionsDetail' obj.id %}">Clear Withdraw</a>
@@ -193,8 +194,8 @@
                   <td>{{obj.receiverfirstname}}</td>
                   <td>{{obj.receiversurname}}</td>
                   <td>{{obj.transactiontimestamp.timestamp }}</td>
+                    <td>{{obj.amount.currency }}</td>
                   <td>{{obj.message}}</td>
-                  <td>{{obj.amount.currency }}</td>
                   <td>{{obj.banktransactionid }}</td>
                   <td>{{obj.bookingtimestamp }}</td>
 

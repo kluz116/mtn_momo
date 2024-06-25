@@ -69,10 +69,10 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = EcwUser
-        fields = ('username', 'firstname', 'lastname', 'branch', 'email', 'is_staff', 'needs_password_change', 'group',
+        fields = ('operator_id', 'firstname', 'lastname', 'branch', 'email', 'is_staff', 'needs_password_change', 'group',
                   'password1', 'password2',)
         widgets = {
-            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Username'}),
+            'operator_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Operator id'}),
             'firstname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
             'lastname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
