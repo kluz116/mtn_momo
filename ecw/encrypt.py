@@ -1,10 +1,13 @@
+import os
+
 from Crypto.Signature import pkcs1_15
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 import base64
-import time
 import string
 import random
+
+from ecw.constants import log_path
 
 
 def signMsg(message):
@@ -62,3 +65,9 @@ def generate_random_trx_id():
 
 def get_challenge(x_signature):
     return x_signature.split(";")[0]
+
+
+def write_to_file(content):
+    file_path = os.path.join(os.path.dirname(__file__), f'{log_path}\log.txt')
+    with open(file_path, 'a') as file:
+        file.write(content + '\n')

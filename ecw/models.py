@@ -12,7 +12,7 @@ from .managers import CustomUserManager
 # Create your models here.
 class DepositFunds(models.Model):
     deposists_to = [("phone_number", "PhoneNumber (Msisdn)"), ("external_id", "External ID"), ]
-    bankcode = models.CharField(max_length=30, null=False, default='FTBLUGKA')
+    bankcode = models.CharField(max_length=30, null=False, default='37')
     accountnumber = models.CharField(max_length=15, blank=True, null=True, default='20680300000')
     amount = models.FloatField(max_length=15, null=False, blank=False)
     receiver = models.CharField(max_length=35)

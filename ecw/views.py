@@ -140,6 +140,8 @@ def addDeposit(request):
                 messages.error(request, f"ACCOUNTHOLDER_NOT_FOUND {receiver} ")
             elif res == 'INTERNAL_ERROR':
                 messages.error(request, f"INTERNAL_ERROR")
+            elif res == 'CUSTODY_ACCOUNT_NOT_FOUND':
+                messages.error(request, f"CUSTODY_ACCOUNT_NOT_FOUND")
             else:
                 response = nimbleCreditCustomer("206803000001", amount, trx_description)
                 if getMessage(response) == 'Success':
@@ -265,6 +267,8 @@ def addAccountHolder(request):
 
             if res == 'ACCOUNTHOLDER_NOT_FOUND':
                 messages.error(request, f"{res}")
+            elif res == 'INTERNAL_ERROR':
+                messages.error(request,'INTERNAL_ERROR')
             else:
                 firstname = res['firstname']
                 surname = res['surname']
@@ -377,6 +381,8 @@ def paymentInstruction(request):
             response['X-Signature'] = yy
             response['X-Original-Signer'] = original_signer
             verfySif(values_to_beSigned, x)
+            obj_logs = {"url": paymentinstructionresponse_url, "headers": response.headers, "body": response.data}
+            write_to_file(str(obj_logs))
             return response
         else:
 

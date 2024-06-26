@@ -1,3 +1,4 @@
+import time
 from datetime import datetime
 import requests
 from django.http import request
@@ -104,7 +105,10 @@ def get_account_holder_info(phone_number):
     response = requests.post(getaccountholderinfo_url, headers=headers, data=payload, cert=(certificate_path, key_path),
                              verify=False)
 
+    print(response.text)
+
     obj_logs = {"url": getaccountholderinfo_url, "headers": headers, "body": payload}
+    write_to_file(str(obj_logs))
     obj = AppLogs.objects.create(**obj_logs)
     obj.save()
 
@@ -212,6 +216,9 @@ def deposit_funds(bankcode, accountnumber, amount, transactiontimestamp, currenc
     if accountholder_info == 'ACCOUNTHOLDER_NOT_FOUND':
         return 'ACCOUNTHOLDER_NOT_FOUND'
 
+    if accountholder_info == 'INTERNAL_ERROR':
+        return 'INTERNAL_ERROR'
+
     receiverfirstname = accountholder_info["firstname"]
     receiversurname = accountholder_info["surname"]
 
@@ -250,6 +257,7 @@ def deposit_funds(bankcode, accountnumber, amount, transactiontimestamp, currenc
                              verify=False)
 
     obj_logs = {"url": deposit_url, "headers": headers, "body": payload}
+    write_to_file(str(obj_logs))
     obj = AppLogs.objects.create(**obj_logs)
     obj.save()
 
@@ -309,6 +317,7 @@ def deposit_funds_external(bankcode, accountnumber, amount, transactiontimestamp
                              verify=False)
 
     obj_logs = {"url": deposit_url, "headers": headers, "body": payload}
+    write_to_file(str(obj_logs))
     obj = AppLogs.objects.create(**obj_logs)
     obj.save()
 
@@ -469,8 +478,9 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
                              cert=(certificate_path, key_path), verify=False)
 
     print(response.text)
-'''
+
     obj_logs = {"url": paymentinstructionresponserequest_url, "headers": headers, "body": payload}
+    write_to_file(str(obj_logs))
     obj = AppLogs.objects.create(**obj_logs)
     obj.save()
 
@@ -485,4 +495,4 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
         return withdraw_response["ns2:errorResponse"]["@errorcode"]
     else:
         return response.text
-        '''
+

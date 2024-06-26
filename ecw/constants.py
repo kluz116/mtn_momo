@@ -11,3 +11,4 @@ key_path = 'E:/ftb_uat_mtls/fintrust_signing_uat.key'
 ourBranchID = "206"
 operatorID = "CM2056"
 password = "New@12345"
+log_path = "E:\ecw_logs"
