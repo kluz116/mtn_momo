@@ -64,60 +64,6 @@ def getIndex(request):
 
 
 @login_required(login_url='/ecw/')
-def addDepositxxx(request):
-    form = DepositForm(request.POST or None)
-    if request.method == 'POST':
-        if form.is_valid():
-            bankcode = form['bankcode'].value()
-            accountnumber = form['accountnumber'].value()
-            amount = form['amount'].value()
-            receiver = form['receiver'].value()
-            transactiontimestamp = form['transactiontimestamp'].value()
-            currency = form['currency'].value()
-            #banktransactionid = form['banktransactionid'].value()
-            message = form['message'].value()
-            banktransactionid = generate_random_trx_id()
-            trx_description = f'MTN Deposit Cash Deposit {amount} MSSIDN: {receiver} at {transactiontimestamp}'
-
-            response = nimbleCreditCustomer("206803000001", amount, trx_description)
-
-            if getMessage(response) == 'Success':
-                res = deposit_funds(bankcode, accountnumber, amount, transactiontimestamp, currency, receiver,
-                                    banktransactionid, message)
-
-                first_name = res["receiverfirstname"]
-                sur_name = res["receiversurname"]
-                status = res["status"]
-
-                trx_batchid = getbatchID(response)
-                trx_serialid = getSerialID(response)
-
-                deposit_obj_data = {
-                    "bankcode": bankcode,
-                    "accountnumber": accountnumber,
-                    "amount": amount,
-                    "receiver": receiver,
-                    "transactiontimestamp": transactiontimestamp,
-                    "currency": currency,
-                    "banktransactionid": banktransactionid,
-                    "message": message,
-                    "receiverfirstname": first_name,
-                    "receiversurname": sur_name,
-                    "status": status,
-                    "trx_batchid": trx_batchid,
-                    "trx_serialid": trx_serialid}
-
-                obj = DepositFunds.objects.create(**deposit_obj_data)
-                obj.save()
-                messages.success(request,
-                                 f'Successful deposit of {amount} UGX to {receiver} with status :{status}. TrxBatchID {trx_batchid} and SerailID {trx_serialid}')
-                return HttpResponseRedirect('/ecw/getDeposits')
-            else:
-                return JsonResponse(response)
-    return render(request, 'create_deposit.html', {'form': form})
-
-
-@login_required(login_url='/ecw/')
 def addDeposit(request):
     if request.method == 'POST':
         form = DepositForm(request.POST)
@@ -144,7 +90,9 @@ def addDeposit(request):
                 messages.error(request, f"CUSTODY_ACCOUNT_NOT_FOUND")
             else:
                 response = nimbleCreditCustomer("206803000001", amount, trx_description)
-                if getMessage(response) == 'Success':
+                if getMessage(response) == 'error':
+                    messages.error(request, 'Ooops,can not reach core banking now.Contact system administrator')
+                elif getMessage(response) == 'Success':
                     first_name = res.get("receiverfirstname", "")
                     sur_name = res.get("receiversurname", "")
                     status = res.get("status", "")
@@ -264,11 +212,14 @@ def addAccountHolder(request):
         if form.is_valid():
             phone_nmber = form['msisdn'].value()
             res = get_account_holder_info(phone_nmber)
+            print(res)
 
             if res == 'ACCOUNTHOLDER_NOT_FOUND':
                 messages.error(request, f"{res}")
             elif res == 'INTERNAL_ERROR':
-                messages.error(request,'INTERNAL_ERROR')
+                messages.error(request, 'INTERNAL_ERROR')
+            elif res == 'error':
+                messages.error(request, 'Connectivity Error,System can not reach MTN')
             else:
                 firstname = res['firstname']
                 surname = res['surname']
@@ -419,10 +370,18 @@ def PaymentInstructionsDetail(request, id):
             amount_value = form['amount_value'].value()
             transactiontimestamp_value = form['transactiontimestamp_value'].value()
             currency = 'UGX'
+            trx_description = f'{paymentinstructionid} {amount_value} {transactiontimestamp_value} {response_status}'
+
+            SerialID = '345'
+            trx_branchid = '206'
 
             res = paymentinstructionresponserequest_withdraw(response_status, paymentinstructionid, banktransactionid,
                                                              amount_value, currency, transactiontimestamp_value,
                                                              bookingtimestamp)
+
+            nimbleTransferCreditCustomer('206209005703', Amount, trx_description, SerialID)
+            nimbleTransferDebitCustomer('206803000001', Amount, trx_description, SerialID)
+            AddTransferTransaction(SerialID, trx_branchid)
 
             if res == 'SETTLEMENT_AMOUNT_DO_NOT_MATCH':
                 messages.error(request, f"SETTLEMENT_AMOUNT_DO_NOT_MATCH")
@@ -528,4 +487,3 @@ def generate_excel_withdraw(request):
 
             return response
     return render(request, 'ecw/withdraw_report.html', {'form': form})
-

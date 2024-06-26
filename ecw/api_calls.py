@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 import requests
 from django.http import request
+from requests import RequestException
 
 from ecw.constants import *
 from ecw.encrypt import *
@@ -84,128 +85,100 @@ def get_signing_certificate():
 
 
 def get_account_holder_info(phone_number):
-    random_challenge = generate_random_challenge()
-    timestamp = round(time.time())
-    values_to_be_signed = f'{random_challenge};{timestamp};'.encode('utf-8')
-    signature = signMsg(values_to_be_signed)
-    signature_header = f'{random_challenge};{timestamp};{signature}'
+    try:
+        random_challenge = generate_random_challenge()
+        timestamp = round(time.time())
+        values_to_be_signed = f'{random_challenge};{timestamp};'.encode('utf-8')
+        signature = signMsg(values_to_be_signed)
+        signature_header = f'{random_challenge};{timestamp};{signature}'
 
-    payload = f"""<?xml version="1.0" encoding="UTF-8"?>
-    <ns0:getaccountholderinforequest xmlns:ns0="http://www.ericsson.com/em/emm/provisioning/v1_2">
-        <identity>ID:{phone_number}/MSISDN</identity>
-    </ns0:getaccountholderinforequest>"""
+        payload = f"""<?xml version="1.0" encoding="UTF-8"?>
+        <ns0:getaccountholderinforequest xmlns:ns0="http://www.ericsson.com/em/emm/provisioning/v1_2">
+            <identity>ID:{phone_number}/MSISDN</identity>
+        </ns0:getaccountholderinforequest>"""
 
-    headers = {
-        'Content-Type': 'text/xml',
-        'X-Signature': signature_header,
-        'X-Original-Signer': 'ID:FTBbank/USER',
-        'Authorization': 'Basic RlRCYmFuazpBQmMxMjM0NTYh'
-    }
+        headers = {
+            'Content-Type': 'text/xml',
+            'X-Signature': signature_header,
+            'X-Original-Signer': 'ID:FTBbank/USER',
+            'Authorization': 'Basic RlRCYmFuazpBQmMxMjM0NTYh'
+        }
 
-    response = requests.post(getaccountholderinfo_url, headers=headers, data=payload, cert=(certificate_path, key_path),
-                             verify=False)
+        response = requests.post(getaccountholderinfo_url, headers=headers, data=payload,
+                                 cert=(certificate_path, key_path), verify=False)
+        response.raise_for_status()  # Raise HTTPError for bad responses
 
-    print(response.text)
+        obj_logs = {"url": getaccountholderinfo_url, "headers": headers, "body": payload}
+        write_to_file(str(obj_logs))
+        obj = AppLogs.objects.create(**obj_logs)
+        obj.save()
 
-    obj_logs = {"url": getaccountholderinfo_url, "headers": headers, "body": payload}
-    write_to_file(str(obj_logs))
-    obj = AppLogs.objects.create(**obj_logs)
-    obj.save()
+        obj_response = json.loads(json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4))
 
-    obj_response = json.loads(json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4))
+        if "ns2:errorResponse" in obj_response:
+            return obj_response["ns2:errorResponse"]["@errorcode"]
 
-    if "ns2:errorResponse" in obj_response:
-        return obj_response["ns2:errorResponse"]["@errorcode"]
+        accountholder_info = obj_response["ns5:getaccountholderinforesponse"]["accountholderbasicinfo"]
+        return {
+            "firstname": accountholder_info["firstname"],
+            "surname": accountholder_info["surname"],
+            "msisdn": accountholder_info["msisdn"],
+            "accountholderstatus": accountholder_info["accountholderstatus"],
+            "profilename": accountholder_info["profilename"],
+            "msg": f"Successfully found {accountholder_info['msisdn']}"
+        }
 
-    accountholder_info = obj_response["ns5:getaccountholderinforesponse"]["accountholderbasicinfo"]
-    return {
-        "firstname": accountholder_info["firstname"],
-        "surname": accountholder_info["surname"],
-        "msisdn": accountholder_info["msisdn"],
-        "accountholderstatus": accountholder_info["accountholderstatus"],
-        "profilename": accountholder_info["profilename"],
-        "msg": f"Successfully found {accountholder_info['msisdn']}"
-    }
+    except RequestException as e:
+        error_message = f"An error occurred: {str(e)}"
+        write_to_file(error_message)
+        return 'error'
 
 
 def get_account_holder_info_deposits(phone_number):
-    random_challenge = generate_random_challenge()
-    timestamp = round(time.time())
-    values_to_be_signed = f'{random_challenge};{timestamp};'.encode('utf-8')
-    signature = signMsg(values_to_be_signed)
-    signature_header = f'{random_challenge};{timestamp};{signature}'
+    try:
+        random_challenge = generate_random_challenge()
+        timestamp = round(time.time())
+        values_to_be_signed = f'{random_challenge};{timestamp};'.encode('utf-8')
+        signature = signMsg(values_to_be_signed)
+        signature_header = f'{random_challenge};{timestamp};{signature}'
 
-    payload = f"""<?xml version="1.0" encoding="UTF-8"?>
-    <ns0:getaccountholderinforequest xmlns:ns0="http://www.ericsson.com/em/emm/provisioning/v1_2">
-        <identity>ID:{phone_number}/MSISDN</identity>
-    </ns0:getaccountholderinforequest>"""
+        payload = f"""<?xml version="1.0" encoding="UTF-8"?>
+        <ns0:getaccountholderinforequest xmlns:ns0="http://www.ericsson.com/em/emm/provisioning/v1_2">
+            <identity>ID:{phone_number}/MSISDN</identity>
+        </ns0:getaccountholderinforequest>"""
 
-    headers = {
-        'Content-Type': 'text/xml',
-        'X-Signature': signature_header,
-        'X-Original-Signer': 'ID:FTBbank/USER',
-        'Authorization': 'Basic RlRCYmFuazpBQmMxMjM0NTYh'
-    }
+        headers = {
+            'Content-Type': 'text/xml',
+            'X-Signature': signature_header,
+            'X-Original-Signer': 'ID:FTBbank/USER',
+            'Authorization': 'Basic RlRCYmFuazpBQmMxMjM0NTYh'
+        }
 
-    response = requests.post(getaccountholderinfo_url, headers=headers, data=payload, cert=(certificate_path, key_path),
-                             verify=False)
+        response = requests.post(getaccountholderinfo_url, headers=headers, data=payload,
+                                 cert=(certificate_path, key_path), verify=False)
+        response.raise_for_status()  # Raise HTTPError for bad responses
 
-    obj_logs = {"url": getaccountholderinfo_url, "headers": headers, "body": payload}
-    obj = AppLogs.objects.create(**obj_logs)
-    obj.save()
+        obj_logs = {"url": getaccountholderinfo_url, "headers": headers, "body": payload}
+        obj = AppLogs.objects.create(**obj_logs)
+        obj.save()
 
-    obj_response = json.loads(json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4))
+        obj_response = json.loads(json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4))
 
-    if "ns2:errorResponse" in obj_response:
-        return obj_response["ns2:errorResponse"]["@errorcode"]
+        if "ns2:errorResponse" in obj_response:
+            return obj_response["ns2:errorResponse"]["@errorcode"]
 
-    accountholder_info = obj_response["ns5:getaccountholderinforesponse"]["accountholderbasicinfo"]
-    return {
-        "firstname": accountholder_info["firstname"],
-        "surname": accountholder_info["surname"],
-        "msisdn": accountholder_info["msisdn"],
-        "accountholderstatus": accountholder_info["accountholderstatus"]
-    }
+        accountholder_info = obj_response["ns5:getaccountholderinforesponse"]["accountholderbasicinfo"]
+        return {
+            "firstname": accountholder_info["firstname"],
+            "surname": accountholder_info["surname"],
+            "msisdn": accountholder_info["msisdn"],
+            "accountholderstatus": accountholder_info["accountholderstatus"]
+        }
 
-
-def getAccontHolderInfoDeposits(phone_nmber):
-    random_challenge = generate_random_challenge()
-    time_stamp = round(time.time())
-    final_str = f'{random_challenge};{time_stamp}'
-    values_to_beSigned = f'{random_challenge};{time_stamp};'.encode('utf-8')
-
-    x = signMsg(values_to_beSigned)
-    yy = f'{final_str};{x}'
-
-    payload = f"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<ns0:getaccountholderinforequest xmlns:ns0=\"http://www.ericsson.com/em/emm/provisioning/v1_2\">\r\n    <identity>ID:{phone_nmber}/MSISDN</identity>\r\n</ns0:getaccountholderinforequest>"
-    headers = {
-        'Content-Type': 'text/xml',
-        'X-Signature': yy,
-        'X-Original-Signer': 'ID:FTBbank/USER',
-        'Authorization': 'Basic RlRCYmFuazpBQmMxMjM0NTYh'
-    }
-
-    response = requests.request("POST", getaccountholderinfo_url, headers=headers, data=payload,
-                                cert=(certificate_path, key_path), verify=False)
-
-    obj_logs = {"url": getaccountholderinfo_url, "headers": headers, "body": payload}
-    obj = AppLogs.objects.create(**obj_logs)
-    obj.save()
-
-    results = json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4)
-    obj_response = json.loads(results)
-    if "ns2:errorResponse" in obj_response:
-        return obj_response["ns2:errorResponse"]["@errorcode"]
-
-    else:
-        firstname = obj_response["ns5:getaccountholderinforesponse"]["accountholderbasicinfo"]["firstname"]
-        surname = obj_response["ns5:getaccountholderinforesponse"]["accountholderbasicinfo"]["surname"]
-        msisdn = obj_response["ns5:getaccountholderinforesponse"]["accountholderbasicinfo"]["msisdn"]
-        accountholderstatus = obj_response["ns5:getaccountholderinforesponse"]["accountholderbasicinfo"][
-            "accountholderstatus"]
-
-        return {"firstname": firstname, "surname": surname, "msisdn": msisdn,
-                "accountholderstatus": accountholderstatus}
+    except RequestException as e:
+        error_message = f"An error occurred: {str(e)}"
+        write_to_file(error_message)
+        return "error"
 
 
 def deposit_funds(bankcode, accountnumber, amount, transactiontimestamp, currency, phone_number, banktransactionid,
@@ -218,6 +191,9 @@ def deposit_funds(bankcode, accountnumber, amount, transactiontimestamp, currenc
 
     if accountholder_info == 'INTERNAL_ERROR':
         return 'INTERNAL_ERROR'
+
+    if accountholder_info == 'error':
+        return 'Connectivity Error,System can not reach MTN'
 
     receiverfirstname = accountholder_info["firstname"]
     receiversurname = accountholder_info["surname"]
@@ -275,8 +251,6 @@ def deposit_funds(bankcode, accountnumber, amount, transactiontimestamp, currenc
         }
 
     return 'Error, contact system administrator'
-
-
 
 
 def deposit_funds_external(bankcode, accountnumber, amount, transactiontimestamp, currency, phone_number,
@@ -367,7 +341,7 @@ def nimbleCreditCustomer(AccountID, Amount, trx_description):
         "ProductID": "803",
         "ModuleID": "3000",
         "TrxTypeID": "CC",
-        "TrxDate": "2024-05-04 00:00:00",  #datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+        "TrxDate": "2024-05-04 00:00:00",
         "Amount": Amount,
         "LocalAmount": Amount,
         "TrxCurrencyID": "UGX",
@@ -397,7 +371,7 @@ def nimbleCreditCustomer(AccountID, Amount, trx_description):
         "ChargeOnExcessAmount": "0",
         "IsChargeWaived": "false",
         "TrxCodeID": "0",
-        "ValueDate": "2024-05-04 00:00:00",  #datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+        "ValueDate": "2024-05-04 00:00:00",
         "ForwardRemark": "",
         "ErrorNo": "",
         "MainRowID": 0,
@@ -434,8 +408,14 @@ def nimbleCreditCustomer(AccountID, Amount, trx_description):
         'Authorization': f'Bearer {get_access_token()}'
     }
 
-    response = requests.request("POST", nimble_add_cash_url, headers=headers, data=payload)
-    return response.json()
+    try:
+        response = requests.post(nimble_add_cash_url, headers=headers, data=payload)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+        return response.json()
+    except RequestException as e:
+        error_message = f"An error occurred: {str(e)}"
+        print(error_message)
+        return "error"
 
 
 def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, banktransactionid, amount, currency,
@@ -496,3 +476,131 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
     else:
         return response.text
 
+
+def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID):
+    payload = {
+        "AccountID": AccountID,
+        "AccountTypeID": "C",
+        "Amount": Amount,
+        "ChequeID": "0",
+        "CostCenterID": "99",
+        "DontReturnSerial": "False",
+        "ExchangeRate": "1.0",
+        "ForwardRemark": "",
+        "InstrumentTypeID": "V",
+        "LocalAmount": "130000.0",
+        "MainGLID": "800200",
+        "MeanRate": "1.0",
+        "ModuleID": "3020",
+        "OperatorID": "DK0657",
+        "OtherDetails": "[]",
+        "OurBranchID": "206",
+        "PortfolioAccountID": "",
+        "PortfolioBranchID": "",
+        "PortfolioSeries": "0",
+        "ProductID": "251",
+        "Profit": "0.0",
+        "ReferenceNo": "206251000211",
+        "Remarks": trx_description,
+        "SerialID": SerialID,
+        "SlNo": "1",
+        "TrxAmount": Amount,
+        "TrxBranchID": "206",
+        "TrxCodeID": "0",
+        "TrxCurrencyID": "UGX",
+        "TrxDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+        "TrxDescription": trx_description,
+        "TrxDescriptionID": "007",
+        "TrxFlagID": "",
+        "TrxTypeID": "TC",
+        "ValueDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    }
+
+    print(payload)
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {get_access_token()}'
+    }
+
+    try:
+        response = requests.post(transfer_url, headers=headers, data=payload)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+        return response.json()
+    except RequestException as e:
+        error_message = f"An error occurred: {str(e)}"
+        print(error_message)
+        return "error"
+
+
+def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID):
+    payload = {
+        "AccountID": AccountID,
+        "AccountTypeID": "C",
+        "Amount": Amount,
+        "ChequeID": "0",
+        "CostCenterID": "99",
+        "DontReturnSerial": "False",
+        "ExchangeRate": "1.0",
+        "ForwardRemark": "",
+        "InstrumentTypeID": "V",
+        "LocalAmount": "130000.0",
+        "MainGLID": "800200",
+        "MeanRate": "1.0",
+        "ModuleID": "3020",
+        "OperatorID": "DK0657",
+        "OtherDetails": "[]",
+        "OurBranchID": "206",
+        "PortfolioAccountID": "",
+        "PortfolioBranchID": "",
+        "PortfolioSeries": "0",
+        "ProductID": "251",
+        "Profit": "0.0",
+        "ReferenceNo": "206251000211",
+        "Remarks": trx_description,
+        "SerialID": SerialID,
+        "SlNo": "1",
+        "TrxAmount": Amount,
+        "TrxBranchID": "206",
+        "TrxCodeID": "0",
+        "TrxCurrencyID": "UGX",
+        "TrxDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
+        "TrxDescription": trx_description,
+        "TrxDescriptionID": "007",
+        "TrxFlagID": "",
+        "TrxTypeID": "TC",
+        "ValueDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+    }
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {get_access_token()}'
+    }
+
+    try:
+        response = requests.post(transfer_url, headers=headers, data=payload)
+        response.raise_for_status()  # Raise HTTPError for bad responses
+        return response.json()
+    except RequestException as e:
+        error_message = f"An error occurred: {str(e)}"
+        print(error_message)
+        return "error"
+
+
+def AddTransferTransaction(serial_id, trx_branchid):
+    payload = {
+        "ModuleID": "3020",
+        "OperatorID": "DK0657",
+        "SerialID": serial_id,
+        "TrxBranchID": trx_branchid
+    }
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {get_access_token()}'
+    }
+    try:
+        response = requests.request("POST", AddTransferTransaction_url, headers=headers, data=payload)
+        return response.json()
+
+    except RequestException as e:
+        error_message = f"An error occurred: {str(e)}"
+        print(error_message)
+        return "error"
