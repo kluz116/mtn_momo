@@ -371,15 +371,16 @@ def PaymentInstructionsDetail(request, id):
             receiveraccountnumber = form['receiveraccountnumber'].value()
             currency = 'UGX'
             trx_description = f'Paymentinstructionid: {paymentinstructionid} Amount: {amount_value} transactiontimestamp_value: {transactiontimestamp_value}  '
+            SerialID = random.randint(100, 200)
+            trx_branchid = request.user.branch.branch_code if request.user.branch else None
+            operator_id = request.user.operator_id
 
-            SerialID = '345'
-            trx_branchid = '211'
-
-            response1 = nimbleTransferDebitCustomer('206803000001', amount_value, trx_description, SerialID)
+            response1 = nimbleTransferDebitCustomer('206803000001', amount_value, trx_description, SerialID,operator_id,trx_branchid)
             if getMessage(response1) == 'Success':
-                response2 = nimbleTransferCreditCustomer('206209005703', amount_value, trx_description, SerialID)
+                response2 = nimbleTransferCreditCustomer('206209005703', amount_value, trx_description, SerialID,operator_id,trx_branchid)
                 if getMessage(response2) == 'Success':
-                    response3 = AddTransferTransaction(SerialID, trx_branchid)
+                    response3 = AddTransferTransaction(SerialID, trx_branchid,operator_id)
+
                     if getMessage(response3) == 'Success':
                         response_status = 'SUCCESS'
                         res = paymentinstructionresponserequest_withdraw(response_status, paymentinstructionid,
@@ -521,3 +522,19 @@ def addBranch(request):
 def getBranches(request):
     branch = Branch.objects.all().order_by('-id')
     return render(request, 'ecw/branches.html', {'branch': branch})
+
+
+@login_required(login_url='/ecw/')
+def addUsers(request):
+    form = CustomUserCreationForm()
+    if request.method == "POST":
+        form = CustomUserCreationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Account created successfully')
+            return HttpResponseRedirect('/ecw/addUsers')
+        else:
+            form = CustomUserCreationForm()
+
+    context = {"form": form}
+    return render(request, "ecw/addUsers.html", context)

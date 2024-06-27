@@ -477,7 +477,7 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
         return response.text
 
 
-def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID):
+def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID,operator_id,trx_branchid):
     payload = json.dumps({
         "AccountID": AccountID,
         "AccountTypeID": "C",
@@ -492,7 +492,7 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID):
         "MainGLID": "1",
         "MeanRate": "1.0",
         "ModuleID": "3020",
-        "OperatorID": "DK0657",
+        "OperatorID": operator_id,
         "OtherDetails": "[]",
         "OurBranchID": "206",
         "PortfolioAccountID": None,
@@ -505,7 +505,7 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID):
         "SerialID": SerialID,
         "SlNo": "0",
         "TrxAmount": Amount,
-        "TrxBranchID": "211",
+        "TrxBranchID": trx_branchid,
         "TrxCodeID": "0",
         "TrxCurrencyID": "UGX",
         "TrxDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
@@ -531,7 +531,7 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID):
         return "error"
 
 
-def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID):
+def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID,operator_id,trx_branchid):
     payload = json.dumps({
         "AccountID": AccountID,
         "AccountTypeID": "C",
@@ -546,7 +546,7 @@ def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID):
         "MainGLID": '1',
         "MeanRate": "1.0",
         "ModuleID": "3020",
-        "OperatorID": "DK0657",
+        "OperatorID": operator_id,
         "OtherDetails": "[]",
         "OurBranchID": "206",
         "PortfolioAccountID": None,
@@ -559,7 +559,7 @@ def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID):
         "SerialID": SerialID,
         "SlNo": "1",
         "TrxAmount": Amount,
-        "TrxBranchID": "211",
+        "TrxBranchID": trx_branchid,
         "TrxCodeID": "0",
         "TrxCurrencyID": "UGX",
         "TrxDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
@@ -584,10 +584,10 @@ def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID):
         return "error"
 
 
-def AddTransferTransaction(serial_id, trx_branchid):
+def AddTransferTransaction(serial_id, trx_branchid,operator_id):
     payload = json.dumps({
         "ModuleID": "3020",
-        "OperatorID": "DK0657",
+        "OperatorID": operator_id,
         "SerialID": serial_id,
         "TrxBranchID": trx_branchid
     })
