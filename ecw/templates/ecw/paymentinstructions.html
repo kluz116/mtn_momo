@@ -186,8 +186,11 @@
                                     #
                                   </button>
                                   <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a class="dropdown-item" href="{% url 'PaymentInstructionsDetail' obj.id %}">Clear Withdraw</a>
-
+                                        {% if obj.response_status == 'PENDING' %}
+                                             <a class="dropdown-item" href="{% url 'PaymentInstructionsDetail' obj.id %}">Clear Withdraw</a>
+                                        {% elif obj.response_status == 'SUCCESS' %}
+                                            <a class="dropdown-item" href="">Cleared</a>
+                                        {% endif %}
                                   </div>
                                 </div>
                             </td>

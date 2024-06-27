@@ -20,5 +20,7 @@ urlpatterns = [
     path('PaymentInstructionsDetail/<int:id>/', views.PaymentInstructionsDetail, name='PaymentInstructionsDetail'),
     path('generate_excel', views.generate_excel, name='generate_excel'),
     path('generate_excel_withdraw', views.generate_excel_withdraw, name='generate_excel_withdraw'),
+    path('addBranch', views.addBranch, name='addBranch'),
+    path('getBranches', views.getBranches, name='getBranches'),
 
 ]

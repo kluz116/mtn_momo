@@ -363,32 +363,49 @@ def PaymentInstructionsDetail(request, id):
         form = PaymentInstructionRequestForm(request.POST, instance=sec)
         if form.is_valid():
 
-            response_status = form['response_status'].value()
             paymentinstructionid = form['paymentinstructionid'].value()
             bookingtimestamp = form['bookingtimestamp'].value()
             banktransactionid = form['banktransactionid'].value()
             amount_value = form['amount_value'].value()
             transactiontimestamp_value = form['transactiontimestamp_value'].value()
+            receiveraccountnumber = form['receiveraccountnumber'].value()
             currency = 'UGX'
-            trx_description = f'{paymentinstructionid} {amount_value} {transactiontimestamp_value} {response_status}'
+            trx_description = f'Paymentinstructionid: {paymentinstructionid} Amount: {amount_value} transactiontimestamp_value: {transactiontimestamp_value}  '
 
             SerialID = '345'
-            trx_branchid = '206'
+            trx_branchid = '211'
 
-            res = paymentinstructionresponserequest_withdraw(response_status, paymentinstructionid, banktransactionid,
-                                                             amount_value, currency, transactiontimestamp_value,
-                                                             bookingtimestamp)
+            response1 = nimbleTransferDebitCustomer('206803000001', amount_value, trx_description, SerialID)
+            if getMessage(response1) == 'Success':
+                response2 = nimbleTransferCreditCustomer('206209005703', amount_value, trx_description, SerialID)
+                if getMessage(response2) == 'Success':
+                    response3 = AddTransferTransaction(SerialID, trx_branchid)
+                    if getMessage(response3) == 'Success':
+                        response_status = 'SUCCESS'
+                        res = paymentinstructionresponserequest_withdraw(response_status, paymentinstructionid,
+                                                                         banktransactionid,
+                                                                         amount_value, currency,
+                                                                         transactiontimestamp_value,
+                                                                         bookingtimestamp)
+                        if res == 'SETTLEMENT_AMOUNT_DO_NOT_MATCH':
+                            messages.error(request, f"SETTLEMENT_AMOUNT_DO_NOT_MATCH")
+                        else:
 
-            nimbleTransferCreditCustomer('206209005703', Amount, trx_description, SerialID)
-            nimbleTransferDebitCustomer('206803000001', Amount, trx_description, SerialID)
-            AddTransferTransaction(SerialID, trx_branchid)
+                            instance = form.save()
+                            instance.response_status = response_status
+                            instance.save()
+                            messages.success(request,
+                                             f'Fund transfer of {amount_value}{currency} to {receiveraccountnumber} now completed with TrxBatchID {getbatchID(response3)} and SeralID {getSerialID(response3)}')
+                            return HttpResponseRedirect('/ecw/getPaymentInstructions')
+                    else:
+                        messages.error(request, f'{getSystemMessage(response3)}')
 
-            if res == 'SETTLEMENT_AMOUNT_DO_NOT_MATCH':
-                messages.error(request, f"SETTLEMENT_AMOUNT_DO_NOT_MATCH")
+                else:
+                    messages.error(request, "Unable to credit account")
+
             else:
-                form.save()
-                messages.info(request, f'Withdraw of {amount_value}{currency} now completed')
-                return HttpResponseRedirect('/ecw/getPaymentInstructions')
+                messages.error(request, "Unable to Debit account")
+
     else:
         form = PaymentInstructionRequestForm(instance=sec)
 
@@ -487,3 +504,20 @@ def generate_excel_withdraw(request):
 
             return response
     return render(request, 'ecw/withdraw_report.html', {'form': form})
+
+
+@login_required(login_url='/ecw/')
+def addBranch(request):
+    form = BranchForm(request.POST or None)
+    if request.method == 'POST':
+        if form.is_valid():
+            form.save()
+            messages.success(request, "You have successfully added a branch.")
+            return HttpResponseRedirect('/ecw/addBranch')
+    return render(request, 'addBranch.html', {'form': form})
+
+
+@login_required(login_url='/ecw/')
+def getBranches(request):
+    branch = Branch.objects.all().order_by('-id')
+    return render(request, 'ecw/branches.html', {'branch': branch})

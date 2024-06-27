@@ -72,7 +72,7 @@ class CustomUserCreationForm(UserCreationForm):
         fields = ('operator_id', 'firstname', 'lastname', 'branch', 'email', 'is_staff', 'needs_password_change', 'group',
                   'password1', 'password2',)
         widgets = {
-            'operator_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Operator id'}),
+            'operator_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'OperatorID'}),
             'firstname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
             'lastname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Last Name'}),
             'email': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Email'}),
@@ -113,7 +113,7 @@ class BranchForm(forms.ModelForm):
             'branch_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Branch Code'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Branch Name'}),
         }
-
+Branch
 
 class PaymentInstructionRequestForm(forms.ModelForm):
     amount_value = forms.FloatField(label='Amount', required=False,
@@ -141,7 +141,7 @@ class PaymentInstructionRequestForm(forms.ModelForm):
             'receiveraccountnumber': forms.TextInput(
                 attrs={'maxlength': 50, 'readonly': 'readonly', 'class': 'form-control'}),
             'response_status': forms.TextInput(
-                attrs={'maxlength': 50, 'class': 'form-control', 'placeholder': 'Branch Code'}),
+                attrs={'maxlength': 50, 'class': 'form-control', 'readonly': 'readonly'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -193,3 +193,5 @@ class WithdrawReportForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['from_transactiontimestamp_value'].initial = self.instance.transactiontimestamp.timestamp
             self.fields['to_transactiontimestamp_value'].initial = self.instance.transactiontimestamp.timestamp
+
+

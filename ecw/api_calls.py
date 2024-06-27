@@ -478,7 +478,7 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
 
 
 def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID):
-    payload = {
+    payload = json.dumps({
         "AccountID": AccountID,
         "AccountTypeID": "C",
         "Amount": Amount,
@@ -486,37 +486,36 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID):
         "CostCenterID": "99",
         "DontReturnSerial": "False",
         "ExchangeRate": "1.0",
-        "ForwardRemark": "",
+        "ForwardRemark": None,
         "InstrumentTypeID": "V",
-        "LocalAmount": "130000.0",
-        "MainGLID": "800200",
+        "LocalAmount": Amount,
+        "MainGLID": "1",
         "MeanRate": "1.0",
         "ModuleID": "3020",
         "OperatorID": "DK0657",
         "OtherDetails": "[]",
         "OurBranchID": "206",
-        "PortfolioAccountID": "",
-        "PortfolioBranchID": "",
+        "PortfolioAccountID": None,
+        "PortfolioBranchID": None,
         "PortfolioSeries": "0",
         "ProductID": "251",
         "Profit": "0.0",
-        "ReferenceNo": "206251000211",
+        "ReferenceNo": trx_description,
         "Remarks": trx_description,
         "SerialID": SerialID,
-        "SlNo": "1",
+        "SlNo": "0",
         "TrxAmount": Amount,
-        "TrxBranchID": "206",
+        "TrxBranchID": "211",
         "TrxCodeID": "0",
         "TrxCurrencyID": "UGX",
         "TrxDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
         "TrxDescription": trx_description,
         "TrxDescriptionID": "007",
-        "TrxFlagID": "",
+        "TrxFlagID": None,
         "TrxTypeID": "TC",
         "ValueDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    }
+    })
 
-    print(payload)
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {get_access_token()}'
@@ -533,7 +532,7 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID):
 
 
 def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID):
-    payload = {
+    payload = json.dumps({
         "AccountID": AccountID,
         "AccountTypeID": "C",
         "Amount": Amount,
@@ -543,33 +542,33 @@ def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID):
         "ExchangeRate": "1.0",
         "ForwardRemark": "",
         "InstrumentTypeID": "V",
-        "LocalAmount": "130000.0",
-        "MainGLID": "800200",
+        "LocalAmount": Amount,
+        "MainGLID": '1',
         "MeanRate": "1.0",
         "ModuleID": "3020",
         "OperatorID": "DK0657",
         "OtherDetails": "[]",
         "OurBranchID": "206",
-        "PortfolioAccountID": "",
-        "PortfolioBranchID": "",
+        "PortfolioAccountID": None,
+        "PortfolioBranchID": None,
         "PortfolioSeries": "0",
-        "ProductID": "251",
+        "ProductID": "803",
         "Profit": "0.0",
-        "ReferenceNo": "206251000211",
+        "ReferenceNo": trx_description,
         "Remarks": trx_description,
         "SerialID": SerialID,
         "SlNo": "1",
         "TrxAmount": Amount,
-        "TrxBranchID": "206",
+        "TrxBranchID": "211",
         "TrxCodeID": "0",
         "TrxCurrencyID": "UGX",
         "TrxDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
         "TrxDescription": trx_description,
         "TrxDescriptionID": "007",
-        "TrxFlagID": "",
-        "TrxTypeID": "TC",
+        "TrxFlagID": None,
+        "TrxTypeID": "TD",
         "ValueDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-    }
+    })
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {get_access_token()}'
@@ -586,12 +585,12 @@ def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID):
 
 
 def AddTransferTransaction(serial_id, trx_branchid):
-    payload = {
+    payload = json.dumps({
         "ModuleID": "3020",
         "OperatorID": "DK0657",
         "SerialID": serial_id,
         "TrxBranchID": trx_branchid
-    }
+    })
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {get_access_token()}'
@@ -599,6 +598,7 @@ def AddTransferTransaction(serial_id, trx_branchid):
     try:
         response = requests.request("POST", AddTransferTransaction_url, headers=headers, data=payload)
         return response.json()
+
 
     except RequestException as e:
         error_message = f"An error occurred: {str(e)}"

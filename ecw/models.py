@@ -98,7 +98,7 @@ class Branch(models.Model):
     branch_code = models.CharField(max_length=5)
 
     def __str__(self):
-        return self.name
+        return self.branch_code
 
 
 class EcwGroup(Group):

@@ -7,6 +7,11 @@ def getMessage(res):
     message = results_dict['Message']
     return message
 
+def getSystemMessage(res):
+    results_json_str = res['responseValue'][0]['results']
+    results_dict = json.loads(results_json_str)
+    message = results_dict['SystemMessage']
+    return message
 
 def getbatchID(res):
     results_json_str = res['responseValue'][0]['results']

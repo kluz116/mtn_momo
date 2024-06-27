@@ -10,7 +10,11 @@ transfer_url ="http://10.255.201.179:8092/api/v1/TransferTransaction/UpdateTrans
 AddTransferTransaction_url = "http://10.255.201.179:8092/api/v1/TransferTransaction/AddTransferTransaction"
 certificate_path = 'E:/ftb_uat_mtls/ftb_uat_mtls.crt'
 key_path = 'E:/ftb_uat_mtls/fintrust_signing_uat.key'
-ourBranchID = "206"
-operatorID = "CM2056"
-password = "New@12345"
+#ourBranchID = "206"
+#operatorID = "CM2056"
+#password = "New@12345"
 log_path = "E:\ecw_logs"
+
+operatorID = "DK0657"
+password = "New@1234"
+ourBranchID = "211"
