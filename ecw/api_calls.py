@@ -238,7 +238,7 @@ def deposit_funds(bankcode, accountnumber, amount, transactiontimestamp, currenc
     obj.save()
 
     deposit_response = json.loads(json.dumps(xmltodict.parse(response.text, process_namespaces=False), indent=4))
-
+    print(deposit_response)
     if "ns2:errorResponse" in deposit_response:
         return deposit_response["ns2:errorResponse"]["@errorcode"]
 
@@ -249,6 +249,10 @@ def deposit_funds(bankcode, accountnumber, amount, transactiontimestamp, currenc
             "status": deposit_response["ns4:depositresponse"]["status"],
             "financialtransactionid": deposit_response["ns4:depositresponse"]["financialtransactionid"]
         }
+
+    if "ns4:depositresponse" in deposit_response and deposit_response["ns4:depositresponse"]["status"] == "SUSPENDED":
+        #return deposit_response["ns4:depositresponse"]["failurereason"]
+        return "AUTHORIZATION_MAXIMUM_AMOUNT_ALLOWED_TO_RECEIVE"
 
     return 'Error, contact system administrator'
 
@@ -429,7 +433,7 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
     signature = signMsg(values_to_be_signed)
     signature_header = f'{signature_string};{signature}'
 
-    payload = f"""
+    payload = f"""<?xml version="1.0" encoding="UTF-8"?>
     <ns4:paymentinstructionresponserequest xmlns:ns4="http://www.ericsson.com/em/emm/settlement/v1_0">
         <status>{status}</status>
         <paymentinstructionid>{paymentinstructionid}</paymentinstructionid>
@@ -457,7 +461,7 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
     response = requests.post(paymentinstructionresponse_url, headers=headers, data=payload,
                              cert=(certificate_path, key_path), verify=False)
 
-    print(response.text)
+    print(f'Success Withdraw : {paymentinstructionid} {response.text}')
 
     obj_logs = {"url": paymentinstructionresponserequest_url, "headers": headers, "body": payload}
     write_to_file(str(obj_logs))
@@ -466,18 +470,18 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
 
     response_dict = xmltodict.parse(response.text, process_namespaces=False)
     response_json = json.dumps(response_dict, indent=4)
-
     withdraw_response = json.loads(response_json)
-
-    print(withdraw_response)
 
     if "ns2:errorResponse" in withdraw_response:
         return withdraw_response["ns2:errorResponse"]["@errorcode"]
-    else:
-        return response.text
+
+    if "ns4:paymentinstructionresponseresponse" in withdraw_response:
+        return "Success"
+
+    return response.text
 
 
-def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID,operator_id,trx_branchid):
+def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID, operator_id, trx_branchid, product_id):
     payload = json.dumps({
         "AccountID": AccountID,
         "AccountTypeID": "C",
@@ -498,7 +502,7 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID,op
         "PortfolioAccountID": None,
         "PortfolioBranchID": None,
         "PortfolioSeries": "0",
-        "ProductID": "251",
+        "ProductID": product_id,
         "Profit": "0.0",
         "ReferenceNo": trx_description,
         "Remarks": trx_description,
@@ -512,9 +516,12 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID,op
         "TrxDescription": trx_description,
         "TrxDescriptionID": "007",
         "TrxFlagID": None,
+        "CreatedBy": operator_id,
         "TrxTypeID": "TC",
         "ValueDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     })
+
+    print(payload)
 
     headers = {
         'Content-Type': 'application/json',
@@ -523,7 +530,7 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID,op
 
     try:
         response = requests.post(transfer_url, headers=headers, data=payload)
-        response.raise_for_status()  # Raise HTTPError for bad responses
+        response.raise_for_status()
         return response.json()
     except RequestException as e:
         error_message = f"An error occurred: {str(e)}"
@@ -531,7 +538,7 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID,op
         return "error"
 
 
-def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID,operator_id,trx_branchid):
+def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID, operator_id, trx_branchid):
     payload = json.dumps({
         "AccountID": AccountID,
         "AccountTypeID": "C",
@@ -566,9 +573,12 @@ def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID,ope
         "TrxDescription": trx_description,
         "TrxDescriptionID": "007",
         "TrxFlagID": None,
+        "CreatedBy": operator_id,
         "TrxTypeID": "TD",
         "ValueDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     })
+
+    print(payload)
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {get_access_token()}'
@@ -584,13 +594,14 @@ def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID,ope
         return "error"
 
 
-def AddTransferTransaction(serial_id, trx_branchid,operator_id):
+def AddTransferTransaction(serial_id, trx_branchid, operator_id):
     payload = json.dumps({
         "ModuleID": "3020",
         "OperatorID": operator_id,
         "SerialID": serial_id,
         "TrxBranchID": trx_branchid
     })
+    print(payload)
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {get_access_token()}'

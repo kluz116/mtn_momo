@@ -65,9 +65,9 @@ class Amount(models.Model):
 class PaymentInstructionRequest(models.Model):
     transactiontimestamp = models.OneToOneField(TransactionTimestamp, on_delete=models.CASCADE)
     amount = models.OneToOneField(Amount, on_delete=models.CASCADE)
-    paymentinstructionid = models.CharField(max_length=20)
+    paymentinstructionid = models.CharField(max_length=20,unique=True)
     receiverbankcode = models.CharField(max_length=20)
-    receiveraccountnumber = models.CharField(max_length=20)
+    receiveraccountnumber = models.CharField(max_length=100)
     receiverfirstname = models.CharField(max_length=50, null=True, blank=True)
     receiversurname = models.CharField(max_length=50, null=True, blank=True)
     message = models.TextField(null=True, blank=True)

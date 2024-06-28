@@ -2,6 +2,7 @@ import uuid
 from decimal import Decimal
 import pandas as pd
 from django.contrib import messages
+from django.db import IntegrityError
 from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
@@ -88,6 +89,8 @@ def addDeposit(request):
                 messages.error(request, f"INTERNAL_ERROR")
             elif res == 'CUSTODY_ACCOUNT_NOT_FOUND':
                 messages.error(request, f"CUSTODY_ACCOUNT_NOT_FOUND")
+            elif res == 'AUTHORIZATION_MAXIMUM_AMOUNT_ALLOWED_TO_RECEIVE':
+                messages.error(request, 'AUTHORIZATION_MAXIMUM_AMOUNT_ALLOWED_TO_RECEIVE')
             else:
                 response = nimbleCreditCustomer("206803000001", amount, trx_description)
                 if getMessage(response) == 'error':
@@ -289,22 +292,28 @@ def paymentInstruction(request):
         )
 
         # Create PaymentInstructionRequest object
-        payment_instruction_request_obj = PaymentInstructionRequest.objects.create(
-            transactiontimestamp=transaction_timestamp_instance,
-            amount=amount_instance,
-            paymentinstructionid=paymentinstructionid,
-            receiverbankcode=request.data.get('receiverbankcode'),
-            receiveraccountnumber=request.data.get('receiveraccountnumber'),
-            receiverfirstname=request.data.get('receiverfirstname'),
-            receiversurname=request.data.get('receiversurname'),
-            message='',
-            transmissioncounter=request.data.get('transmissioncounter'),
-            transactionid=request.data.get('transactionid'),
-            bookingtimestamp=bookingtimestamp,
-            banktransactionid=banktransactionid,
-            random_challenge=random_challenge,
-            response_status=response_status
-        )
+
+        try:
+            payment_instruction_request_obj = PaymentInstructionRequest.objects.create(
+                transactiontimestamp=transaction_timestamp_instance,
+                amount=amount_instance,
+                paymentinstructionid=paymentinstructionid,
+                receiverbankcode=request.data.get('receiverbankcode'),
+                receiveraccountnumber=request.data.get('receiveraccountnumber'),
+                receiverfirstname=request.data.get('receiverfirstname'),
+                receiversurname=request.data.get('receiversurname'),
+                message='',
+                transmissioncounter=request.data.get('transmissioncounter'),
+                transactionid=request.data.get('transactionid'),
+                bookingtimestamp=bookingtimestamp,
+                banktransactionid=banktransactionid,
+                random_challenge=random_challenge,
+                response_status=response_status
+            )
+            return payment_instruction_request_obj
+        except IntegrityError:
+            # Handle the error, e.g., return an error message
+            Response("A PaymentInstructionRequest with this paymentinstructionid already exists.")
 
         time_stamp = round(time.time())
         final_str = f'{random_challenge};{time_stamp}'
@@ -374,24 +383,30 @@ def PaymentInstructionsDetail(request, id):
             SerialID = random.randint(100, 200)
             trx_branchid = request.user.branch.branch_code if request.user.branch else None
             operator_id = request.user.operator_id
+            receiveraccountnumbers = "206209005703"
+            product_id = getProductID(receiveraccountnumber)
 
-            response1 = nimbleTransferDebitCustomer('206803000001', amount_value, trx_description, SerialID,operator_id,trx_branchid)
+            print('yayyayayyaya',operator_id)
+
+            response1 = nimbleTransferDebitCustomer(debit_account, amount_value, trx_description, SerialID, operator_id,
+                                                    trx_branchid)
             if getMessage(response1) == 'Success':
-                response2 = nimbleTransferCreditCustomer('206209005703', amount_value, trx_description, SerialID,operator_id,trx_branchid)
+                response2 = nimbleTransferCreditCustomer(receiveraccountnumbers, amount_value, trx_description,
+                                                         SerialID, operator_id, trx_branchid, product_id)
                 if getMessage(response2) == 'Success':
-                    response3 = AddTransferTransaction(SerialID, trx_branchid,operator_id)
+                    response3 = AddTransferTransaction(SerialID, trx_branchid, operator_id)
 
                     if getMessage(response3) == 'Success':
                         response_status = 'SUCCESS'
-                        res = paymentinstructionresponserequest_withdraw(response_status, paymentinstructionid,
-                                                                         banktransactionid,
-                                                                         amount_value, currency,
-                                                                         transactiontimestamp_value,
-                                                                         bookingtimestamp)
+                       # res = paymentinstructionresponserequest_withdraw(response_status, paymentinstructionid,
+                                                                         #banktransactionid,
+                                                                         #amount_value, currency,
+                                                                         #transactiontimestamp_value,
+                                                                        # bookingtimestamp)
+                        res =''
                         if res == 'SETTLEMENT_AMOUNT_DO_NOT_MATCH':
                             messages.error(request, f"SETTLEMENT_AMOUNT_DO_NOT_MATCH")
-                        else:
-
+                        if res == 'Success':
                             instance = form.save()
                             instance.response_status = response_status
                             instance.save()
