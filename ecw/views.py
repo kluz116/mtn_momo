@@ -491,25 +491,25 @@ def PaymentInstructionsDetail(request, id):
             receiveraccountnumbers = "206209005703"
             product_id = getProductID(receiveraccountnumber)
             ourbranch_id = getOurBranchID(receiveraccountnumber)
-
             get_token = get_access_tokens(trx_branchid, operator_id, trx_password)
             response1 = nimbleTransferDebitCustomer(debit_account, amount_value, trx_description, SerialID, operator_id,
                                                     trx_branchid, get_token)
             if getMessage(response1) == 'Success':
-                response2 = nimbleTransferCreditCustomer(receiveraccountnumbers, amount_value, trx_description,
+
+                response2 = nimbleTransferCreditCustomer(receiveraccountnumber, amount_value, trx_description,
                                                          SerialID, operator_id, trx_branchid, ourbranch_id, product_id,
                                                          get_token)
                 if getMessage(response2) == 'Success':
-                    response3 = AddTransferTransaction(SerialID, trx_branchid, operator_id, get_token)
 
+                    response3 = AddTransferTransaction(SerialID, trx_branchid, operator_id, get_token)
                     if getMessage(response3) == 'Success':
                         response_status = 'SUCCESS'
-                        # res = paymentinstructionresponserequest_withdraw(response_status, paymentinstructionid,
-                        #banktransactionid,
-                        #amount_value, currency,
-                        #transactiontimestamp_value,
-                        # bookingtimestamp)
-                        res = ''
+                        res = paymentinstructionresponserequest_withdraw(response_status, paymentinstructionid,
+                        banktransactionid,
+                        amount_value, currency,
+                        transactiontimestamp_value,
+                         bookingtimestamp)
+
                         if res == 'SETTLEMENT_AMOUNT_DO_NOT_MATCH':
                             messages.error(request, f"SETTLEMENT_AMOUNT_DO_NOT_MATCH")
                         if res == 'Success':
@@ -613,6 +613,7 @@ def generate_excel_withdraw(request):
                                    'response_status', 'transmissioncounter', 'bookingtimestamp')
             df = pd.DataFrame(persons)
 
+            # Convert datetime columns to timezone-unaware
             # Convert datetime columns to timezone-unaware
             if 'bookingtimestamp' in df.columns:
                 df['bookingtimestamp'] = pd.to_datetime(df['bookingtimestamp']).dt.tz_convert(None)

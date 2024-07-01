@@ -49,7 +49,7 @@
           <li><a href="{% url 'addAccountHolder' %}">Search AccountHolder</a></li>
         </ul>
       </li>
-      <li class="has-sub active">
+      <li class="has-sub">
         <a href="javascript:;">
           <b class="caret"></b>
           <i class="fa fa-th-large"></i>
@@ -63,14 +63,14 @@
 
         </ul>
       </li>
-       <li class="has-sub active">
+       <li class="has-sub">
         <a href="javascript:;">
           <b class="caret"></b>
           <i class="fa fa-list"></i>
           <span>Withdraws</span>
         </a>
         <ul class="sub-menu">
-          <li class="active"><a href="{% url 'getPaymentInstructions' %}">Agent Withdraws</a></li>
+          <li class="active"><a href="{% url 'getPaymentInstructions' %}">Payment Instruction</a></li>
         </ul>
       </li>
 
@@ -82,10 +82,10 @@
           <span>Reports</span>
         </a>
         <ul class="sub-menu">
-          <li class="active">
+          <li>
             <a href="{% url 'generate_excel' %}">Deposit Report</a>
           </li>
-          <li class="active">
+          <li>
             <a href="{% url 'generate_excel_withdraw' %}">Withdraw Report</a>
           </li>
         </ul>

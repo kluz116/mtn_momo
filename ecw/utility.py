@@ -50,7 +50,7 @@ def getProductID(number):
 
 def getOurBranchID(number):
     number_str = str(number)
-    extracted_digits = number_str[0:2]
+    extracted_digits = number_str[0:3]
     extracted_number = int(extracted_digits)
 
     return extracted_number

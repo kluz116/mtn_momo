@@ -76,7 +76,7 @@ class PaymentInstructionRequest(models.Model):
     message = models.TextField(null=True, blank=True)
     transmissioncounter = models.CharField(max_length=255, null=True)
     transactionid = models.CharField(max_length=255, null=True)
-    bookingtimestamp = models.CharField(max_length=25, blank=True, null=True)
+    bookingtimestamp = models.DateTimeField(max_length=25, blank=True, null=True)
     banktransactionid = models.CharField(max_length=100, null=True, blank=True)
     random_challenge = models.CharField(max_length=50, blank=True, null=True)
     response_status = models.CharField(max_length=50, blank=True, null=True, default='PENDING')

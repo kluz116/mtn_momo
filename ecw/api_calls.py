@@ -357,7 +357,8 @@ def confirmation_message(phone_number, date, amount, financialtransactionid):
     return f'Transaction successful for {phone_number} on {date} for {amount} and the transaction ID is {financialtransactionid}'
 
 
-def nimbleCreditCustomer(AccountID, Amount, trx_description, trx_branchid, operator_id, cash_control_gl,ReferenceNo,get_token):
+def nimbleCreditCustomer(AccountID, Amount, trx_description, trx_branchid, operator_id, cash_control_gl, ReferenceNo,
+                         get_token):
     payload = json.dumps({
         "TrxBranchID": trx_branchid,
         "TrxBatchID": None,
@@ -546,6 +547,7 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID, o
     try:
         response = requests.post(transfer_url, headers=headers, data=payload)
         response.raise_for_status()
+        print(response)
         return response.json()
     except RequestException as e:
         error_message = f"An error occurred: {str(e)}"
@@ -593,7 +595,6 @@ def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID, op
         "ValueDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     })
 
-    print(payload)
     headers = {
         'Content-Type': 'application/json',
         'Authorization': f'Bearer {token}'
@@ -602,6 +603,7 @@ def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID, op
     try:
         response = requests.post(transfer_url, headers=headers, data=payload)
         response.raise_for_status()  # Raise HTTPError for bad responses
+        print(response.text)
         return response.json()
     except RequestException as e:
         error_message = f"An error occurred: {str(e)}"
