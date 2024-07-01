@@ -20,5 +20,8 @@ urlpatterns = [
     path('addBranch', views.addBranch, name='addBranch'),
     path('getBranches', views.getBranches, name='getBranches'),
     path('addUsers', views.addUsers, name='addUsers'),
+    path('getEcwUsers', views.getEcwUsers, name='getEcwUsers'),
+    path('updateUser/<int:id>/', views.updateUser, name='updateUser'),
+
 
 ]

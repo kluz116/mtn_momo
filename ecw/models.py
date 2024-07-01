@@ -25,6 +25,9 @@ class DepositFunds(models.Model):
     status = models.CharField(max_length=50, null=False, blank=False)
     trx_batchid = models.CharField(max_length=50, null=False, blank=False)
     trx_serialid = models.CharField(max_length=50, null=False, blank=False)
+    financialtransactionid = models.CharField(max_length=50, null=True, blank=False)
+    trx_password = models.TextField(blank=True, null=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
 
 
 class AccountHolder(models.Model):
@@ -65,7 +68,7 @@ class Amount(models.Model):
 class PaymentInstructionRequest(models.Model):
     transactiontimestamp = models.OneToOneField(TransactionTimestamp, on_delete=models.CASCADE)
     amount = models.OneToOneField(Amount, on_delete=models.CASCADE)
-    paymentinstructionid = models.CharField(max_length=20,unique=True)
+    paymentinstructionid = models.CharField(max_length=20, unique=True)
     receiverbankcode = models.CharField(max_length=20)
     receiveraccountnumber = models.CharField(max_length=100)
     receiverfirstname = models.CharField(max_length=50, null=True, blank=True)
@@ -77,6 +80,7 @@ class PaymentInstructionRequest(models.Model):
     banktransactionid = models.CharField(max_length=100, null=True, blank=True)
     random_challenge = models.CharField(max_length=50, blank=True, null=True)
     response_status = models.CharField(max_length=50, blank=True, null=True, default='PENDING')
+    trx_password = models.TextField(blank=True, null=True)
 
 
 class PaymentInstructionResponse(models.Model):
@@ -91,6 +95,14 @@ class PaymentInstructionResponse(models.Model):
 class Xsignature(models.Model):
     x_signature = models.TextField(blank=True, null=True)
     paymentinstructionid = models.CharField(max_length=35)
+
+
+class Till(models.Model):
+    till_id = models.IntegerField()
+    till_name = models.CharField(max_length=25)
+
+    def __str__(self):
+        return self.till_name
 
 
 class Branch(models.Model):
@@ -115,7 +127,7 @@ class EcwUser(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
     branch = models.ForeignKey(Branch, on_delete=models.CASCADE, blank=True, null=True)
-    #group = models.ForeignKey(CustomGroup, on_delete=models.CASCADE, blank=True, null=True)
+    till = models.ForeignKey(Till, on_delete=models.CASCADE, blank=True, null=True)
     group = models.ForeignKey(EcwGroup, on_delete=models.CASCADE, blank=True, null=True)
     needs_password_change = models.BooleanField(default=True)
 
@@ -140,7 +152,6 @@ class AppLogs(models.Model):
 
 # models.py
 from django.db import models
-
 
 
 class AuditLog(models.Model):

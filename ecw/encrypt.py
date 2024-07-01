@@ -71,3 +71,17 @@ def write_to_file(content):
     file_path = os.path.join(os.path.dirname(__file__), f'{log_path}\log.txt')
     with open(file_path, 'a') as file:
         file.write(content + '\n')
+
+
+def signPassword(TrxPassword):
+    # Encode the transaction password to bytes
+    TrxPassword_bytes = TrxPassword.encode()
+
+    # Create a new SHA-256 hash object and update it with the transaction password bytes
+    hash_object = SHA256.new(TrxPassword_bytes)
+
+    # Get the binary (raw bytes) representation of the hash
+    hash_bytes = hash_object.digest()
+    base64_string = base64.b64encode(hash_bytes).decode()
+
+    return base64_string

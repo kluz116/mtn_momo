@@ -76,6 +76,11 @@ def addDeposit(request):
             transactiontimestamp = form['transactiontimestamp'].value()
             currency = form['currency'].value()
             banktransactionid = str(uuid.uuid4())
+            trx_password = form['trx_password'].value()
+            trx_branchid = request.user.branch.branch_code if request.user.branch else None
+            till_id = request.user.till.till_id if request.user.till else None
+            operator_id = request.user.operator_id
+            get_token = get_access_tokens(trx_branchid, operator_id, trx_password)
 
             trx_description = f'MTN Deposit Cash Deposit {amount} MSSIDN: {receiver} at {transactiontimestamp}'
             res = deposit_funds(bankcode, accountnumber, amount, transactiontimestamp, currency, receiver,
@@ -92,13 +97,20 @@ def addDeposit(request):
             elif res == 'AUTHORIZATION_MAXIMUM_AMOUNT_ALLOWED_TO_RECEIVE':
                 messages.error(request, 'AUTHORIZATION_MAXIMUM_AMOUNT_ALLOWED_TO_RECEIVE')
             else:
-                response = nimbleCreditCustomer("206803000001", amount, trx_description)
+                cash_control_gl = getCashControlGL(trx_branchid, operator_id, till_id, get_token)
+                response = nimbleCreditCustomer("206803000001", amount, trx_description, trx_branchid, operator_id,
+                                                cash_control_gl,receiver, get_token)
+
                 if getMessage(response) == 'error':
                     messages.error(request, 'Ooops,can not reach core banking now.Contact system administrator')
-                elif getMessage(response) == 'Success':
+                if getMessage(response) == 'Success' and getMessageDB(response) == '50000':
+                    messages.error(request, 'Ooops,can not reach core banking now.Contact system administrator')
+
+                if getMessage(response) == 'Success' and getMessageDB(response) != '50000':
                     first_name = res.get("receiverfirstname", "")
                     sur_name = res.get("receiversurname", "")
                     status = res.get("status", "")
+                    financialtransactionid = res.get("financialtransactionid", "")
                     trx_batchid = getbatchID(response)
                     trx_serialid = getSerialID(response)
 
@@ -116,7 +128,10 @@ def addDeposit(request):
                         "receiversurname": sur_name,
                         "status": status,
                         "trx_batchid": trx_batchid,
-                        "trx_serialid": trx_serialid
+                        "trx_serialid": trx_serialid,
+                        "financialtransactionid": financialtransactionid,
+                        "trx_password": signPassword(trx_password),
+                        "created_by": request.user
                     }
 
                     # Create DepositFunds object
@@ -128,8 +143,9 @@ def addDeposit(request):
                                      f'Successful deposit of {amount} UGX to {receiver} with status: {status}. TrxBatchID {trx_batchid} and SerialID {trx_serialid}')
                     return HttpResponseRedirect('/ecw/getDeposits')
                 else:
+                    messages.error(request, f"{getSystemMessage(response)}")
                     # Return response as JSON if nimbleCreditCustomer fails
-                    return JsonResponse(response)
+                    #return JsonResponse(response)
     else:
         form = DepositForm()
 
@@ -138,6 +154,94 @@ def addDeposit(request):
 
 @login_required(login_url='/ecw/')
 def addDepositExternalId(request):
+    if request.method == 'POST':
+        form = DepositFormExternal(request.POST)
+        if form.is_valid():
+            bankcode = form['bankcode'].value()
+            accountnumber = form['accountnumber'].value()
+            amount = form['amount'].value()
+            receiver = form['receiver'].value()
+            transactiontimestamp = form['transactiontimestamp'].value()
+            currency = form['currency'].value()
+            banktransactionid = str(uuid.uuid4())
+            trx_password = form['trx_password'].value()
+            trx_branchid = request.user.branch.branch_code if request.user.branch else None
+            till_id = request.user.till.till_id if request.user.till else None
+            operator_id = request.user.operator_id
+            get_token = get_access_tokens(trx_branchid, operator_id, trx_password)
+
+            trx_description = f'MTN Deposit Cash Deposit {amount} ExternalID: {receiver} at {transactiontimestamp}'
+            res = deposit_funds_external(bankcode, accountnumber, amount, transactiontimestamp, currency, receiver,
+                                         banktransactionid, trx_description)
+
+            if res == 'TARGET_NOT_FOUND':
+                messages.error(request, f"Phone number {receiver} not found")
+            elif res == 'ACCOUNTHOLDER_NOT_FOUND':
+                messages.error(request, f"ACCOUNTHOLDER_NOT_FOUND {receiver} ")
+            elif res == 'INTERNAL_ERROR':
+                messages.error(request, f"INTERNAL_ERROR")
+            elif res == 'CUSTODY_ACCOUNT_NOT_FOUND':
+                messages.error(request, f"CUSTODY_ACCOUNT_NOT_FOUND")
+            elif res == 'AUTHORIZATION_MAXIMUM_AMOUNT_ALLOWED_TO_RECEIVE':
+                messages.error(request, 'AUTHORIZATION_MAXIMUM_AMOUNT_ALLOWED_TO_RECEIVE')
+            else:
+                cash_control_gl = getCashControlGL(trx_branchid, operator_id, till_id, get_token)
+                response = nimbleCreditCustomer("206803000001", amount, trx_description, trx_branchid, operator_id,
+                                                cash_control_gl, receiver, get_token)
+
+                if getMessage(response) == 'error':
+                    messages.error(request, 'Ooops,can not reach core banking now.Contact system administrator')
+                if getMessage(response) == 'Success' and getMessageDB(response) == '50000':
+                    messages.error(request, 'Ooops,can not reach core banking now.Contact system administrator')
+
+                if getMessage(response) == 'Success' and getMessageDB(response) != '50000':
+                    first_name = res.get("receiverfirstname", "")
+                    sur_name = res.get("receiversurname", "")
+                    status = res.get("status", "")
+                    financialtransactionid = res.get("financialtransactionid", "")
+                    trx_batchid = getbatchID(response)
+                    trx_serialid = getSerialID(response)
+
+                    # Prepare data for DepositFunds object
+                    deposit_obj_data = {
+                        "bankcode": bankcode,
+                        "accountnumber": accountnumber,
+                        "amount": amount,
+                        "receiver": receiver,
+                        "transactiontimestamp": transactiontimestamp,
+                        "currency": currency,
+                        "banktransactionid": banktransactionid,
+                        "message": trx_description,
+                        "receiverfirstname": first_name,
+                        "receiversurname": sur_name,
+                        "status": status,
+                        "trx_batchid": trx_batchid,
+                        "trx_serialid": trx_serialid,
+                        "financialtransactionid": financialtransactionid,
+                        "trx_password": signPassword(trx_password),
+                        "created_by": request.user
+                    }
+
+                    # Create DepositFunds object
+                    obj = DepositFunds.objects.create(**deposit_obj_data)
+                    obj.save()
+
+                    # Display success message and redirect
+                    messages.success(request,
+                                     f'Successful deposit of {amount} UGX to {receiver} with status: {status}. TrxBatchID {trx_batchid} and SerialID {trx_serialid}')
+                    return HttpResponseRedirect('/ecw/getDeposits')
+                else:
+                    messages.error(request, f"{getSystemMessage(response)}")
+                    # Return response as JSON if nimbleCreditCustomer fails
+                    #return JsonResponse(response)
+    else:
+        form = DepositFormExternal()
+
+    return render(request, 'ecw/create_deposit_external.html', {'form': form})
+
+
+@login_required(login_url='/ecw/')
+def addDepositExternalId_old(request):
     if request.method == 'POST':
         form = DepositFormExternal(request.POST)
         if form.is_valid():
@@ -378,6 +482,7 @@ def PaymentInstructionsDetail(request, id):
             amount_value = form['amount_value'].value()
             transactiontimestamp_value = form['transactiontimestamp_value'].value()
             receiveraccountnumber = form['receiveraccountnumber'].value()
+            trx_password = form['trx_password'].value()
             currency = 'UGX'
             trx_description = f'Paymentinstructionid: {paymentinstructionid} Amount: {amount_value} transactiontimestamp_value: {transactiontimestamp_value}  '
             SerialID = random.randint(100, 200)
@@ -385,30 +490,32 @@ def PaymentInstructionsDetail(request, id):
             operator_id = request.user.operator_id
             receiveraccountnumbers = "206209005703"
             product_id = getProductID(receiveraccountnumber)
+            ourbranch_id = getOurBranchID(receiveraccountnumber)
 
-            print('yayyayayyaya',operator_id)
-
+            get_token = get_access_tokens(trx_branchid, operator_id, trx_password)
             response1 = nimbleTransferDebitCustomer(debit_account, amount_value, trx_description, SerialID, operator_id,
-                                                    trx_branchid)
+                                                    trx_branchid, get_token)
             if getMessage(response1) == 'Success':
                 response2 = nimbleTransferCreditCustomer(receiveraccountnumbers, amount_value, trx_description,
-                                                         SerialID, operator_id, trx_branchid, product_id)
+                                                         SerialID, operator_id, trx_branchid, ourbranch_id, product_id,
+                                                         get_token)
                 if getMessage(response2) == 'Success':
-                    response3 = AddTransferTransaction(SerialID, trx_branchid, operator_id)
+                    response3 = AddTransferTransaction(SerialID, trx_branchid, operator_id, get_token)
 
                     if getMessage(response3) == 'Success':
                         response_status = 'SUCCESS'
-                       # res = paymentinstructionresponserequest_withdraw(response_status, paymentinstructionid,
-                                                                         #banktransactionid,
-                                                                         #amount_value, currency,
-                                                                         #transactiontimestamp_value,
-                                                                        # bookingtimestamp)
-                        res =''
+                        # res = paymentinstructionresponserequest_withdraw(response_status, paymentinstructionid,
+                        #banktransactionid,
+                        #amount_value, currency,
+                        #transactiontimestamp_value,
+                        # bookingtimestamp)
+                        res = ''
                         if res == 'SETTLEMENT_AMOUNT_DO_NOT_MATCH':
                             messages.error(request, f"SETTLEMENT_AMOUNT_DO_NOT_MATCH")
                         if res == 'Success':
                             instance = form.save()
                             instance.response_status = response_status
+                            instance.trx_password = signPassword(trx_password)
                             instance.save()
                             messages.success(request,
                                              f'Fund transfer of {amount_value}{currency} to {receiveraccountnumber} now completed with TrxBatchID {getbatchID(response3)} and SeralID {getSerialID(response3)}')
@@ -553,3 +660,23 @@ def addUsers(request):
 
     context = {"form": form}
     return render(request, "ecw/addUsers.html", context)
+
+
+@login_required(login_url='/ecw/')
+def getEcwUsers(request):
+    user = EcwUser.objects.all().order_by('-id')
+    return render(request, "ecw/ecw_users.html", {'user': user})
+
+
+@login_required(login_url='/ecw/')
+def updateUser(request, id):
+    sec = EcwUser.objects.get(id=id)
+
+    if request.method == 'POST':
+        form = CustomUserEditForm(request.POST, instance=sec)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect('/ecw/addUsers')
+    else:
+        form = CustomUserEditForm(instance=sec)
+    return render(request, 'ecw/edit_user.html', {'form': form})

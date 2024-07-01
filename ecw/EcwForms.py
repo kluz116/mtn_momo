@@ -5,11 +5,16 @@ from django import forms
 
 
 class DepositForm(forms.ModelForm):
+    trx_password = forms.CharField(label='Trx Password', required=False,
+                                   widget=forms.PasswordInput(
+                                       attrs={'class': 'form-control', 'placeholder': 'Trx Password'}))
+
     class Meta:
         model = DepositFunds
         fields = "__all__"
         exclude = (
-        'message', 'receiversurname', 'receiverfirstname', 'status', 'banktransactionid', 'trx_batchid', 'trx_serialid')
+            'message', 'receiversurname', 'receiverfirstname', 'status', 'banktransactionid', 'trx_batchid',
+            'trx_serialid', 'created_by', 'financialtransactionid')
         widgets = {
             'bankcode': forms.TextInput(
                 attrs={'class': 'form-control', 'placeholder': 'Bank Code', 'readonly': 'readonly'}),
@@ -26,11 +31,15 @@ class DepositForm(forms.ModelForm):
 
 
 class DepositFormExternal(forms.ModelForm):
+    trx_password = forms.CharField(label='Trx Password', required=False,
+                                   widget=forms.PasswordInput(
+                                       attrs={'class': 'form-control', 'placeholder': 'Trx Password'}))
     class Meta:
         model = DepositFunds
         fields = "__all__"
         exclude = (
-        'receiversurname', 'receiverfirstname', 'status', 'banktransactionid', 'trx_batchid', 'trx_serialid', 'message')
+            'message', 'receiversurname', 'receiverfirstname', 'status', 'banktransactionid', 'trx_batchid',
+            'trx_serialid', 'created_by', 'financialtransactionid')
 
         widgets = {
             'bankcode': forms.TextInput(
@@ -69,8 +78,9 @@ class CustomUserCreationForm(UserCreationForm):
 
     class Meta:
         model = EcwUser
-        fields = ('operator_id', 'firstname', 'lastname', 'branch', 'email', 'is_staff', 'needs_password_change', 'group',
-                  'password1', 'password2',)
+        fields = (
+        'operator_id', 'firstname', 'lastname', 'branch', 'email', 'is_staff', 'needs_password_change', 'group',
+        'password1', 'password2',)
         widgets = {
             'operator_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'OperatorID'}),
             'firstname': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'First name'}),
@@ -81,6 +91,8 @@ class CustomUserCreationForm(UserCreationForm):
             'password2': forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Password'}),
             'branch': forms.Select(attrs={'class': 'form-control selectpicker', 'data-size': '5',
                                           'data-live-search': 'true', 'data-style': 'btn-white'}),
+            'till': forms.Select(attrs={'class': 'form-control selectpicker', 'data-size': '5',
+                                        'data-live-search': 'true', 'data-style': 'btn-white'}),
             'group': forms.Select(attrs={'class': 'form-control selectpicker', 'data-size': '5',
                                          'data-live-search': 'true', 'data-style': 'btn-white'}),
         }
@@ -91,6 +103,25 @@ class CustomUserCreationForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+class CustomUserEditForm(forms.ModelForm):
+    class Meta:
+        model = EcwUser
+        fields = ('operator_id', 'branch', 'till', 'group',)
+
+        widgets = {
+            'operator_id': forms.TextInput(
+                attrs={'class': 'form-control', 'placeholder': 'OperatorID', 'readonly': 'readonly'}),
+            'branch': forms.Select(attrs={'class': 'form-control selectpicker', 'data-size': '5',
+                                          'data-live-search': 'true', 'data-style': 'btn-white'}),
+            'till': forms.Select(attrs={'class': 'form-control selectpicker', 'data-size': '5',
+                                        'data-live-search': 'true', 'data-style': 'btn-white'}),
+            'group': forms.Select(attrs={'class': 'form-control selectpicker', 'data-size': '5',
+                                         'data-live-search': 'true', 'data-style': 'btn-white'}),
+        }
+
+
 
 
 class CustomGroupForm(forms.ModelForm):
@@ -113,13 +144,18 @@ class BranchForm(forms.ModelForm):
             'branch_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Branch Code'}),
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Branch Name'}),
         }
-Branch
+
+
+
+
 
 class PaymentInstructionRequestForm(forms.ModelForm):
     amount_value = forms.FloatField(label='Amount', required=False,
                                     widget=forms.TextInput(attrs={'readonly': 'readonly'}))
     transactiontimestamp_value = forms.DateTimeField(label='Transaction Timestamp', required=False,
                                                      widget=forms.TextInput(attrs={'readonly': 'readonly'}))
+    trx_password = forms.CharField(label='Trx Password', required=False,
+                                   widget=forms.PasswordInput(attrs={'placeholder': 'Trx Password'}))
 
     class Meta:
         model = PaymentInstructionRequest
@@ -128,7 +164,8 @@ class PaymentInstructionRequestForm(forms.ModelForm):
             'bookingtimestamp',
             'banktransactionid',
             'response_status',
-            'receiveraccountnumber'
+            'receiveraccountnumber',
+
         ]
         widgets = {
 
@@ -142,6 +179,7 @@ class PaymentInstructionRequestForm(forms.ModelForm):
                 attrs={'maxlength': 50, 'readonly': 'readonly', 'class': 'form-control'}),
             'response_status': forms.TextInput(
                 attrs={'maxlength': 50, 'class': 'form-control', 'readonly': 'readonly'}),
+
         }
 
     def __init__(self, *args, **kwargs):
@@ -153,9 +191,13 @@ class PaymentInstructionRequestForm(forms.ModelForm):
 
 class DepositReportForm(forms.ModelForm):
     from_transactiontimestamp_value = forms.DateTimeField(label='From Transaction Timestamp', required=False,
-                                                     widget=forms.TextInput(attrs={'type': 'date', 'class': 'form-control', 'placeholder': 'From Transaction Timestamp'}))
+                                                          widget=forms.TextInput(
+                                                              attrs={'type': 'date', 'class': 'form-control',
+                                                                     'placeholder': 'From Transaction Timestamp'}))
     to_transactiontimestamp_value = forms.DateTimeField(label='To Transaction Timestamp', required=False,
-                                                     widget=forms.TextInput(attrs={'type': 'date', 'class': 'form-control', 'placeholder': 'To Transaction Timestamp'}))
+                                                        widget=forms.TextInput(
+                                                            attrs={'type': 'date', 'class': 'form-control',
+                                                                   'placeholder': 'To Transaction Timestamp'}))
 
     class Meta:
         model = PaymentInstructionRequest
@@ -175,9 +217,13 @@ class DepositReportForm(forms.ModelForm):
 
 class WithdrawReportForm(forms.ModelForm):
     from_transactiontimestamp_value = forms.DateTimeField(label='From Transaction Timestamp', required=False,
-                                                     widget=forms.TextInput(attrs={'type': 'date', 'class': 'form-control', 'placeholder': 'From Transaction Timestamp'}))
+                                                          widget=forms.TextInput(
+                                                              attrs={'type': 'date', 'class': 'form-control',
+                                                                     'placeholder': 'From Transaction Timestamp'}))
     to_transactiontimestamp_value = forms.DateTimeField(label='To Transaction Timestamp', required=False,
-                                                     widget=forms.TextInput(attrs={'type': 'date', 'class': 'form-control', 'placeholder': 'To Transaction Timestamp'}))
+                                                        widget=forms.TextInput(
+                                                            attrs={'type': 'date', 'class': 'form-control',
+                                                                   'placeholder': 'To Transaction Timestamp'}))
 
     class Meta:
         model = PaymentInstructionRequest
@@ -193,5 +239,3 @@ class WithdrawReportForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['from_transactiontimestamp_value'].initial = self.instance.transactiontimestamp.timestamp
             self.fields['to_transactiontimestamp_value'].initial = self.instance.transactiontimestamp.timestamp
-
-

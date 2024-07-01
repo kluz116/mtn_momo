@@ -46,12 +46,12 @@
 	<div id="page-container" class="fade page-sidebar-fixed page-header-fixed">
 		<!-- begin #header -->
 		 {% block header %}
-		   {% include "ecw/header.html" %}
+		   {% include "header.html" %}
 		   {% endblock %}
 		<!-- end #header -->
 
 		 {% block side_bar %}
-		   {% include "ecw/side_bar.html" %}
+		   {% include "side_bar.html" %}
 		   {% endblock %}
 		<div class="sidebar-bg"></div>
 		<!-- end #sidebar -->
@@ -86,13 +86,14 @@
 						<thead>
 							<tr>
 
-								<th class="text-nowrap">First Name</th>
-                                <th class="text-nowrap">Last name</th>
+
+                                <th class="text-nowrap">User</th>
                                  <th class="text-nowrap">Mail</th>
+                                 <th class="text-nowrap">Action</th>
 								 <th class="text-nowrap">Active</th>
 								 <th class="text-nowrap">Staff</th>
 								 <th class="text-nowrap">branch</th>
-								 <th class="text-nowrap">Till</th>
+                                 <th class="text-nowrap">Till</th>
 								 <th class="text-nowrap">Last Login</th>
 								 
 							</tr>
@@ -101,14 +102,27 @@
 						{% for obj in user %}
                         <tr>
 
-                            <td>{{obj.firstname}}</td>
-                            <td>{{obj.lastname}}</td>
+
+                            <td>{{obj.operator_id}}</td>
                             <td>{{obj.email}}</td>
+                          <td>
+                                <div class="dropdown">
+                                  <button class="btn btn-outline-danger btn-sm dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    #
+                                  </button>
+                                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+
+                                    <a class="dropdown-item" href="{% url 'updateUser' obj.id %}">Update</a>
+
+                                  </div>
+                                </div>
+                            </td>
 							<td>{{obj.is_active}}</td>
 							<td>{{obj.is_staff}}</td>
 							<td>{{obj.branch}}</td>
-							<td>{{obj.till}}</td>
+                            <td>{{obj.till}}</td>
 							<td>{{obj.last_login}}</td>
+
 
                         </tr>
                         {% endfor %}

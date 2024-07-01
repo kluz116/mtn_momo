@@ -22,6 +22,16 @@ def close_all_sessions():
     return response.json()
 
 
+def close_all_session(trx_branchid, operator_id):
+    payload = json.dumps({
+        "ourBranchID": trx_branchid,
+        "operatorID": operator_id
+    })
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(close_session_url, headers=headers, data=payload)
+    return response.json()
+
+
 def get_access_token():
     close_all_sessions()
     payload = json.dumps({
@@ -31,7 +41,20 @@ def get_access_token():
         "systemID": "eee"
     })
     headers = {'Content-Type': 'application/json'}
-    response = requests.post(token, headers=headers, data=payload)
+    response = requests.post(token_url, headers=headers, data=payload)
+    return response.json().get("accessToken")
+
+
+def get_access_tokens(trx_branchid, operator_id, trx_password):
+    close_all_session(trx_branchid, operator_id)
+    payload = json.dumps({
+        "userID": operator_id,
+        "password": trx_password,
+        "branchID": trx_branchid,
+        "systemID": "eee"
+    })
+    headers = {'Content-Type': 'application/json'}
+    response = requests.post(token_url, headers=headers, data=payload)
     return response.json().get("accessToken")
 
 
@@ -334,9 +357,9 @@ def confirmation_message(phone_number, date, amount, financialtransactionid):
     return f'Transaction successful for {phone_number} on {date} for {amount} and the transaction ID is {financialtransactionid}'
 
 
-def nimbleCreditCustomer(AccountID, Amount, trx_description):
+def nimbleCreditCustomer(AccountID, Amount, trx_description, trx_branchid, operator_id, cash_control_gl,ReferenceNo,get_token):
     payload = json.dumps({
-        "TrxBranchID": "206",
+        "TrxBranchID": trx_branchid,
         "TrxBatchID": None,
         "SerialID": None,
         "OurBranchID": "206",
@@ -345,7 +368,7 @@ def nimbleCreditCustomer(AccountID, Amount, trx_description):
         "ProductID": "803",
         "ModuleID": "3000",
         "TrxTypeID": "CC",
-        "TrxDate": "2024-05-04 00:00:00",
+        "TrxDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
         "Amount": Amount,
         "LocalAmount": Amount,
         "TrxCurrencyID": "UGX",
@@ -356,16 +379,16 @@ def nimbleCreditCustomer(AccountID, Amount, trx_description):
         "InstrumentTypeID": "V",
         "ChequeID": "0",
         "ChequeDate": None,
-        "ReferenceNo": "",
+        "ReferenceNo": ReferenceNo,
         "Remarks": trx_description,
         "TrxDescriptionID": "001",
         "TrxDescription": trx_description,
         "MainGLID": 1,
-        "ContraGLID": "100005",
+        "ContraGLID": cash_control_gl,
         "TrxFlagID": "",
         "ImageID": "0",
         "TrxPrinted": "0",
-        "CreatedBy": "CM2056",
+        "CreatedBy": operator_id,
         "UpdateCount": "2",
         "BREFTChargeID": None,
         "BREFTTrxID": None,
@@ -375,7 +398,7 @@ def nimbleCreditCustomer(AccountID, Amount, trx_description):
         "ChargeOnExcessAmount": "0",
         "IsChargeWaived": "false",
         "TrxCodeID": "0",
-        "ValueDate": "2024-05-04 00:00:00",
+        "ValueDate": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
         "ForwardRemark": "",
         "ErrorNo": "",
         "MainRowID": 0,
@@ -383,7 +406,7 @@ def nimbleCreditCustomer(AccountID, Amount, trx_description):
         "ActionID": None,
         "OtherDetails": "",
         "ActionTypeID": "I",
-        "TillID": "3",
+        "TillID": "",
         "AccountTagID": None,
         "Denominations": None,
         "CostCenterID": "99",
@@ -395,26 +418,17 @@ def nimbleCreditCustomer(AccountID, Amount, trx_description):
         "ApiActionID": 0,
         "ApiDynamicFields": None,
         "ApiModuleID": 3000,
-        "ApiOperatorID": "CM2056",
-        "ApiOurBranchID": "206",
-        "ApiRequestID": None,
         "ApiRoleID": "SBO",
-        "ApiUniqueID": "15348267561754039961",
-        "ApiOperatedOn": datetime.now().strftime("%Y-%m-%dT%H:%M:%S"),
-        "ApiBankID": None,
-        "ApiSearchKey": None,
-        "RecentActivityModuleID": None,
-        "RecentActivityControls": None,
-        "RecentActivityControlValues": None
+        "ApiOperatedOn": datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     })
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer {get_access_token()}'
+        'Authorization': f'Bearer {get_token}'
     }
 
     try:
         response = requests.post(nimble_add_cash_url, headers=headers, data=payload)
-        response.raise_for_status()  # Raise HTTPError for bad responses
+        #response.raise_for_status()  # Raise HTTPError for bad responses
         return response.json()
     except RequestException as e:
         error_message = f"An error occurred: {str(e)}"
@@ -481,7 +495,8 @@ def paymentinstructionresponserequest_withdraw(status, paymentinstructionid, ban
     return response.text
 
 
-def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID, operator_id, trx_branchid, product_id):
+def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID, operator_id, trx_branchid, ourbranch_id,
+                                 product_id, token):
     payload = json.dumps({
         "AccountID": AccountID,
         "AccountTypeID": "C",
@@ -498,7 +513,7 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID, o
         "ModuleID": "3020",
         "OperatorID": operator_id,
         "OtherDetails": "[]",
-        "OurBranchID": "206",
+        "OurBranchID": ourbranch_id,
         "PortfolioAccountID": None,
         "PortfolioBranchID": None,
         "PortfolioSeries": "0",
@@ -525,7 +540,7 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID, o
 
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer {get_access_token()}'
+        'Authorization': f'Bearer {token}'
     }
 
     try:
@@ -538,7 +553,7 @@ def nimbleTransferCreditCustomer(AccountID, Amount, trx_description, SerialID, o
         return "error"
 
 
-def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID, operator_id, trx_branchid):
+def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID, operator_id, trx_branchid, token):
     payload = json.dumps({
         "AccountID": AccountID,
         "AccountTypeID": "C",
@@ -581,7 +596,7 @@ def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID, op
     print(payload)
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer {get_access_token()}'
+        'Authorization': f'Bearer {token}'
     }
 
     try:
@@ -594,7 +609,7 @@ def nimbleTransferDebitCustomer(AccountID, Amount, trx_description, SerialID, op
         return "error"
 
 
-def AddTransferTransaction(serial_id, trx_branchid, operator_id):
+def AddTransferTransaction(serial_id, trx_branchid, operator_id, token):
     payload = json.dumps({
         "ModuleID": "3020",
         "OperatorID": operator_id,
@@ -604,7 +619,7 @@ def AddTransferTransaction(serial_id, trx_branchid, operator_id):
     print(payload)
     headers = {
         'Content-Type': 'application/json',
-        'Authorization': f'Bearer {get_access_token()}'
+        'Authorization': f'Bearer {token}'
     }
     try:
         response = requests.request("POST", AddTransferTransaction_url, headers=headers, data=payload)
@@ -615,3 +630,23 @@ def AddTransferTransaction(serial_id, trx_branchid, operator_id):
         error_message = f"An error occurred: {str(e)}"
         print(error_message)
         return "error"
+
+
+def getCashControlGL(trx_branchid, cashierID, tillID, token):
+    payload = json.dumps({
+        "bankID": "37",
+        "currencyID": "UGX",
+        "ourBranchID": trx_branchid,
+        "cashierID": cashierID,
+        "tillID": tillID,
+        "operatorID": cashierID
+    })
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {token}'
+    }
+
+    response = requests.request("POST", url_teller, headers=headers, data=payload)
+    res = response.json()
+    cash_control_glid = res["TillLimit"][0]["CashControlGLID"]
+    return cash_control_glid

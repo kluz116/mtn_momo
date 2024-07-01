@@ -12,7 +12,7 @@
           </div>
           <div class="info">
             <b class="caret pull-right"></b>
-            {{user.firstname}} {{user.lastname}}
+            {{user.operator_id}}
           </div>
         </a>
       </li>
@@ -70,8 +70,7 @@
           <span>Withdraws</span>
         </a>
         <ul class="sub-menu">
-          <li class="active"><a href="{% url 'getPaymentInstructions' %}">Payment Instructions</a></li>
-          <li><a href="{% url 'getIndex' %}">Create Withdraw</a></li>
+          <li class="active"><a href="{% url 'getPaymentInstructions' %}">Agent Withdraws</a></li>
         </ul>
       </li>
 
@@ -84,12 +83,28 @@
         </a>
         <ul class="sub-menu">
           <li class="active">
-            <a href="{% url 'generateReport' %}">Generate Report</a>
+            <a href="{% url 'generate_excel' %}">Deposit Report</a>
+          </li>
+          <li class="active">
+            <a href="{% url 'generate_excel_withdraw' %}">Withdraw Report</a>
           </li>
         </ul>
       </li>
+      <li class="has-sub active">
+        <a href="javascript:;">
+          <b class="caret"></b>
+          <i class="fa fa-th-large"></i>
+          <span>Configurations</span>
+        </a>
+        <ul class="sub-menu">
+          <li class="active"><a href="{% url 'getBranches' %}">Branches</a></li>
+          <li><a href="{% url 'addBranch' %}">Add Branches</a></li>
+          <li><a href="{% url 'addUsers' %}">Add Users</a></li>
+          <li><a href="{% url 'getEcwUsers' %}">Users</a></li>
+        </ul>
 
 
+      </li>
 
       <!-- begin sidebar minify button -->
       <li>
